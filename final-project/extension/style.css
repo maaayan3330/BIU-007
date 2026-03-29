@@ -1,3 +1,45 @@
 .blurred {
-  filter: blur(5px) !important;
+  filter: blur(5px);
+}
+
+.toxic-content {
+  display: block;
+}
+
+.toxic-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  box-sizing: border-box;
+  margin-bottom: 8px;
+  padding: 8px 10px;
+  background: #fff4f4;
+  border: 1px solid #f3caca;
+  border-radius: 10px;
+}
+
+.toxic-warning {
+  color: #b42318;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.toxic-toggle-btn {
+  border: none;
+  border-radius: 8px;
+  padding: 6px 12px;
+  background: #b42318;
+  color: white;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.toxic-toggle-btn:hover {
+  opacity: 0.9;
 }

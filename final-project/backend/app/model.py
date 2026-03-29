@@ -24,7 +24,7 @@ def predict_toxicity(text: str):
     label = str(top["label"]).lower()
     score = float(top["score"])
 
-    is_toxic = score >= THRESHOLD
+    is_toxic = (label == "label_1") and (score >= THRESHOLD)
 
     return {
         "label": label,
