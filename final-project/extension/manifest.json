@@ -1,0 +1,20 @@
+{
+  "manifest_version": 3,
+  "name": "Toxic Filter",
+  "version": "1.0",
+  "description": "Filter toxic content on YouTube and X",
+  "content_scripts": [
+    {
+      "matches": [
+        "https://www.youtube.com/*",
+        "https://x.com/*",
+        "https://twitter.com/*"
+      ],
+      "js": ["content.js"],
+      "css": ["style.css"]
+    }
+  ],
+  "host_permissions": [
+    "http://127.0.0.1:8000/*"
+  ]
+}
