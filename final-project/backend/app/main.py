@@ -1,9 +1,12 @@
+# Import the libary FastAPI to create the web API server
 from fastapi import FastAPI
+# Import CORS middleware to allow requests from the browser extension
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.schemas import PredictRequest, PredictResponse
 from app.model import predict_toxicity
 
+# Create the instance
 app = FastAPI(title="Toxicity Detection API")
 
 app.add_middleware(
