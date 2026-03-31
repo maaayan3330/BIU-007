@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "Toxic Filter",
+  "name": "The Guardian",
   "version": "1.0",
   "description": "Filter toxic content",
   "content_scripts": [
@@ -10,7 +10,7 @@
         "https://x.com/*",
         "https://twitter.com/*"
       ],
-      "js": ["content.js"],
+      "js": ["api.js", "ui.js", "youtube.js", "twitter.js", "content.js"],
       "css": ["style.css"]
     }
   ],
