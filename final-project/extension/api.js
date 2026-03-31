@@ -1,7 +1,9 @@
+// For debug delete in the end
 console.log("API module loaded");
 
 const API_URL = "http://127.0.0.1:8000/predict";
 
+// The main function - check if the text is toxic , get the text and the right pltform
 async function isToxic(text, platform) {
   try {
     const response = await fetch(API_URL, {
