@@ -9,6 +9,7 @@ from app.model import predict_toxicity
 # Create the instance
 app = FastAPI(title="Toxicity Detection API")
 
+# middlware allow the browser extention to communicate 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -17,12 +18,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
 @app.get("/")
 def root():
     return {"message": "API is running"}
 
-
+# endpoint /predict recceives text from the client and respone
 @app.post("/predict", response_model=PredictResponse)
 def predict(request: PredictRequest):
     result = predict_toxicity(request.text)
