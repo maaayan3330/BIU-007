@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Toxic Filter",
   "version": "1.0",
-  "description": "Filter toxic content on YouTube and X",
+  "description": "Filter toxic content",
   "content_scripts": [
     {
       "matches": [
