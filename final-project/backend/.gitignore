@@ -8,3 +8,6 @@ __pycache__/
 .venv/
 env/
 venv/
+
+# local development
+docs*
