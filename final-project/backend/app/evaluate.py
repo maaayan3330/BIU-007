@@ -224,9 +224,41 @@ def save_evaluation_report(evaluation_metrics: Dict, dataset_name: str, output_d
     print(f"\nReport successfully saved to: {filepath}")
     return filepath
 
+def save_evaluation_csv(evaluated_data: List[Dict], dataset_name: str, output_dir: str = "eval_reports"):
+    """
+    Saves the line-by-line evaluation results to a CSV file for manual inspection.
+    """
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+
+    # Generate a timestamp (matches the JSON report format)
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    clean_name = os.path.splitext(os.path.basename(dataset_name))[0]
+    
+    filename = f"results_{clean_name}_{timestamp}.csv"
+    filepath = os.path.join(output_dir, filename)
+
+    # Write the detailed records to CSV
+    with open(filepath, mode='w', encoding='utf-8', newline='') as file:
+        writer = csv.writer(file)
+        
+        # Write the exact headers you requested
+        writer.writerow(["text", "expected_is_toxic", "predicted_is_toxic", "confidence_score"])
+        
+        for record in evaluated_data:
+            writer.writerow([
+                record.get("text", ""),
+                record.get("expected_is_toxic", ""),
+                record.get("predicted_is_toxic", ""),
+                record.get("confidence_score", "")
+            ])
+
+    print(f"Detailed results CSV successfully saved to: {filepath}")
+    return filepath
+
 if __name__ == "__main__":
     # add a file path to the csv containing the dataset
-    target_dataset = "eval_hebrew.csv"
+    target_dataset = "eval_english.csv"
     
     # pipeline
     try: 
@@ -245,9 +277,11 @@ if __name__ == "__main__":
         evaluation_metrics = calculate_metrics(results) 
         helper_print_metrics(evaluation_metrics)
 
-        # step 4: report
-        save_evaluation_report(evaluation_metrics, target_dataset)    
+        # step 4: json and csv reports
+        save_evaluation_report(evaluation_metrics, target_dataset)
+        save_evaluation_csv(results, target_dataset)    
+
         print("\n=== Pipeline Complete ===")
-        
+                
     except Exception as e:
         print(f"pipeline error: {e}")
