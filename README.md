@@ -19,16 +19,32 @@ Navigate to the backend folder:
 cd backend
 ```
 
-Activate the virtual environment:
+Create and activate the virtual environment:
 
 ```bash
+python -m venv venv
 venv\Scripts\activate
+```
+
+Install dependencies to the virtual environment:
+```bash
+pip install -r requirements.txt
+```
+
+If you have a "Script Execution" error run this:
+```bash
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+```
+
+For the devs: run this when adding new dependencies
+```bash
+pip freeze > requirements.txt
 ```
 
 Run the server:
 
 ```bash
-python -m uvicorn app.main:app --reload
+uvicorn app.main:app --reload
 ```
 
 The server will start at:
