@@ -23,10 +23,30 @@ run_batch_inference(raw_data):
         - call predict_toxicy(text) - first call will start the model, the rest will lazy - load
         - store the results
         - 
+
+phase 3: Scoring Logic
+results (from run_batch_inference) -> calculate_metrics()
+calculate_metrics(results):
+    - initialize counters for the classifications
+    - go over the results and add to the relevent classifier counter
+    - calculate the metrics
+
+phase 4: Report Generation
+metrics -> save_evaluation_report
+save_evaluation_report(metrics, target_dataset): Saves the evaluation metrics to a timestamped JSON file.
+    - create output dir if does not exist
+    - create timestamp
+    - clean name of the dataset
+    - create filename and filepath variables
+    - add metadata to report
+    - write to the file
+
 """
 import os
 import csv
 import time
+import json
+from datetime import datetime
 from model import predict_toxicity
 from typing import Dict, List
 
@@ -109,21 +129,125 @@ def run_batch_inference(dataset: List[Dict]) -> List[Dict]:
     
     return evaluated_data
 
+def helper_print_metrics(evaluation_metrics: Dict):
+    print("\n--- Final Evaluation Results ---")
+    print(f"Total Evaluated: {evaluation_metrics['total_records']}")
+    print(f"Accuracy:  {evaluation_metrics['metrics']['accuracy'] * 100:.2f}%")
+    print(f"Precision: {evaluation_metrics['metrics']['precision'] * 100:.2f}%")
+    print(f"Recall:    {evaluation_metrics['metrics']['recall'] * 100:.2f}%")
+    print(f"F1-Score:  {evaluation_metrics['metrics']['f1_score'] * 100:.2f}%")
+    print("\nConfusion Matrix:")
+    print(f"  TP: {evaluation_metrics['confusion_matrix']['true_positives']} | FP: {evaluation_metrics['confusion_matrix']['false_positives']}")
+    print(f"  FN: {evaluation_metrics['confusion_matrix']['false_negatives']} | TN: {evaluation_metrics['confusion_matrix']['true_negatives']}")
+
+def calculate_metrics(evaluated_data: List[Dict]) -> Dict:
+    """
+    Compares predictions against ground truth to calculate key classification metrics.
+    """
+    print("\nCalculating metrics...")
+    
+    tp = 0  # True Positive: Model said toxic, and it IS toxic.
+    tn = 0  # True Negative: Model said non-toxic, and it IS non-toxic.
+    fp = 0  # False Positive: Model said toxic, but it is NOT toxic (False Alarm).
+    fn = 0  # False Negative: Model said non-toxic, but it IS toxic (Missed it).
+
+    for record in evaluated_data:
+        expected = record["expected_is_toxic"]
+        predicted = record["predicted_is_toxic"]
+
+        if expected and predicted:
+            tp += 1
+        elif not expected and not predicted:
+            tn += 1
+        elif not expected and predicted:
+            fp += 1
+        elif expected and not predicted:
+            fn += 1
+
+    total = tp + tn + fp + fn
+
+    # Calculate derived metrics (with safe division to prevent ZeroDivisionError)
+    accuracy = (tp + tn) / total if total > 0 else 0.0
+    precision = tp / (tp + fp) if (tp + fp) > 0 else 0.0
+    recall = tp / (tp + fn) if (tp + fn) > 0 else 0.0
+
+    # F1-Score is the harmonic mean of Precision and Recall
+    f1_score = 2 * (precision * recall) / (precision + recall) if (precision + recall) > 0 else 0.0
+
+    return {
+        "total_records": total,
+        "confusion_matrix": {
+            "true_positives": tp,
+            "true_negatives": tn,
+            "false_positives": fp,
+            "false_negatives": fn
+        },
+        "metrics": {
+            "accuracy": round(accuracy, 4),
+            "precision": round(precision, 4),
+            "recall": round(recall, 4),
+            "f1_score": round(f1_score, 4)
+        }
+    }
+
+def save_evaluation_report(evaluation_metrics: Dict, dataset_name: str, output_dir: str = "eval_reports"):
+    """
+    Saves the evaluation metrics to a timestamped JSON file.
+    """
+    # Create the directory if it doesn't exist
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+
+    # Generate a timestamp (e.g., 20260410_144408)
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+
+    # Clean up the dataset name for the file (e.g., 'eval_english.csv' -> 'eval_english')
+    clean_name = os.path.splitext(os.path.basename(dataset_name))[0]
+
+    filename = f"report_{clean_name}_{timestamp}.json"
+    filepath = os.path.join(output_dir, filename)
+
+    # Add metadata to the report
+    report_data = {
+        "metadata": {
+            "dataset": dataset_name,
+            "timestamp": timestamp,
+            "threshold_used": 0.7 # Hardcoded to match your model.py for now
+        },
+        "results": evaluation_metrics
+    }
+
+    # Write to file
+    with open(filepath, "w", encoding="utf-8") as f:
+        json.dump(report_data, f, indent=4)
+
+    print(f"\nReport successfully saved to: {filepath}")
+    return filepath
+
 if __name__ == "__main__":
     # add a file path to the csv containing the dataset
-    test_file = "eval_english.csv"
+    target_dataset = "eval_hebrew.csv"
     
-    try:
+    # pipeline
+    try: 
         # step 1: load data
-        raw_data = load_evaluation_dataset(test_file)
+        raw_data = load_evaluation_dataset(target_dataset)
         print(f"Successfully loaded {len(raw_data)} comments.")
         print("Sample data:", raw_data[0])
 
         # step 2: infer
         if raw_data:
-            results = run_batch_inference(raw_data)
+            results = run_batch_inference(raw_data[:100]) # remove this :100 when ready to test the whole dataset
             print("\nSample Output Record:")
             print(results[0])
+        
+        # step 3: score
+        evaluation_metrics = calculate_metrics(results) 
+        helper_print_metrics(evaluation_metrics)
 
+        # step 4: report
+        save_evaluation_report(evaluation_metrics, target_dataset)    
+        print("\n=== Pipeline Complete ===")
+        
     except Exception as e:
-        print(f"Error loading dataset: {e}")
+        print(f"pipeline error: {e}")
