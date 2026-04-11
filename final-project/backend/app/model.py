@@ -156,7 +156,7 @@ def predict_toxicity(text: str):
     # 4: split data into chunks
     chunks = get_chunks(processed_text)
 
-    # 4.5: load the model and check each chunk
+    # 5: load the model and define variables
     model = get_classifier()
     highest_score = 0.0 # keeps track of the highest score of confidence
     is_toxic = False # initialized return value
@@ -164,7 +164,7 @@ def predict_toxicity(text: str):
     label = None
     score = 0.0 
 
-    # Evaluate each chunk
+    # 6: Evaluate each chunk
     for chunk in chunks:
         if not chunk.strip():
             continue
@@ -194,6 +194,7 @@ def predict_toxicity(text: str):
         "flagged_chunk": flagged_chunk # Highly recommend returning this for your dataset review!
     }
 
+    # =======================================
     # # 4: load the model and check the result
     # model = get_classifier() # lazy loading the model each time
     # result = model(processed_text)
