@@ -1,0 +1,4 @@
+text,expected_is_toxic,predicted_is_toxic,confidence_score
+ש-ר-מ-ו-ט-ה,True,True,0.9845901727676392
+idi*t,True,True,0.9667367935180664
+תמיד הפוסתמה בפיאט 500,True,False,0.8863720297813416

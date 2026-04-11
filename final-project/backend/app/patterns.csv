@@ -1,0 +1,4 @@
+text,expected_is_toxic
+ש-ר-מ-ו-ט-ה,True
+idi*t,True
+ תמיד הפוסתמה בפיאט 500,True
