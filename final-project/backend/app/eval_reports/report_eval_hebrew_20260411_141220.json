@@ -1,0 +1,22 @@
+{
+    "metadata": {
+        "dataset": "eval_hebrew.csv",
+        "timestamp": "20260411_141220",
+        "threshold_used": 0.7
+    },
+    "results": {
+        "total_records": 2011,
+        "confusion_matrix": {
+            "true_positives": 534,
+            "true_negatives": 1186,
+            "false_positives": 18,
+            "false_negatives": 273
+        },
+        "metrics": {
+            "accuracy": 0.8553,
+            "precision": 0.9674,
+            "recall": 0.6617,
+            "f1_score": 0.7859
+        }
+    }
+}

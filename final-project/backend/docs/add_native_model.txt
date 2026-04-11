@@ -1,0 +1,32 @@
+11.4:
+big feature option: use DictaBERT - a native language model for hebrew.
+The Meanings of Using DictaBERT
+DictaBERT is a state-of-the-art language model built from the ground up entirely on Hebrew text (news, Wikipedia, Israeli internet forums, etc.).
+The Pros:
+    - Deep Semantic Understanding: Multilingual BERT sees Hebrew prefixes (like the "ו" or "ב") as confusing tokens.
+    DictaBERT natively understands Hebrew morphology.
+    - Cultural Context: Because it was trained on Israeli internet text, it actually understands the concept of an "ערס" or modern slang,
+    whereas multilingual models are mostly trained on sterile, formal translation data.
+    - Massive Drop in False Negatives: It won't easily be fooled by sarcasm or complex sentence structures in Hebrew.
+The Catch (What you need to know):
+    - DictaBERT is a foundational model (like base BERT). To use it for toxicity, you need a version of DictaBERT that has been 
+    fine-tuned specifically for toxicity classification. If you search Hugging Face (the model hub),
+    you might find a community-trained Hebrew toxicity model, 
+    but if you don't, you would have to fine-tune it yourself using your dataset.
+    - It is strictly monolingual. If you feed it English, it will output garbage.
+
+Using Both Models (The "Language Router" Architecture)
+it is highly recommended. This is called a "Routing Pipeline."
+Because you already wrote the is_hebrew() function in Phase 4, you have everything you need to build this. Instead of using is_hebrew() to just change the threshold, 
+you use it as a switch at a train track.
+How it works in practice:
+    - The Server Boots: You lazy-load two different pipelines: english_model and hebrew_model.
+    - The Router: When text comes in, your pipeline cleans it and asks: is_hebrew(processed_text)?
+    The Switch:
+        - If True: Feed the chunks only to the DictaBERT model.
+        - If False: Feed the chunks only to the Multilingual BERT model.
+
+The Architectural Implications:
+    - Compute Time: Your server will not be any slower at processing a single message. The text only ever goes through one model.
+    - RAM/Memory: This is the main cost. Transformer models are heavy. Loading one BERT model might take ~1.5GB of RAM/VRAM. 
+    Loading two means your server will need roughly ~3GB of memory just to hold the models. As long as your server has the memory capacity, this is a non-issue. 
