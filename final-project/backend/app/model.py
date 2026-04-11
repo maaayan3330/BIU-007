@@ -1,36 +1,10 @@
 """
-The model we use here "textdetox/bert-multilingual-toxicity-classifier"
-it return 2 things : { "lable":   , "socre":  } 
-lable can be - LABLE_1 = toxic or LABLE_2 = not toxic 
-score - how mach the modle sure in is answer
-
-improvment of the model: create a multi layer pipeline for the model
-phase 1: The Preprocessing & Normalization Layer - done
-in the predict toxicy function, call the clean_text() on the text
-
-clean_text():
-    - remove from text any obfuscation characters
-    - collapse repeating characters (check for optimizations)
-    - remove weird spacing
-    - return the result
-
-phase 2: The Chunking Engine - done, not very effective yet, not used in the pipeline yet
-- call get_chunks(processed_text, chunk_size=15, overlap=5)
-get_chunks(processed_text, chunk_size=15, overlap=5):
-    - checks if text is shorter then the chunck size - if so, just return it
-    - init a list of strings
-    - slide the window across the text and add chunks
-- analyze each chunk using the model
-    - if one was found toxic, lable all of it as toxic
-    - return more metrics - check how main works with it
-
-phase 3: Heuristics Cache - done
-- in main, call check_heuristics
-check_heuristics(data):
-    - checks if a word exists in the no tolerance list - returns bool
-create a blocklist file in the server for now - later change to be stored on the DB
-
-phase 4: threshold for hebrew - done
+    The model we use here "textdetox/bert-multilingual-toxicity-classifier"
+    it returns 2 things : { "lable":   , "socre":  } 
+    lable can be - LABLE_1 = toxic or LABLE_2 = not toxic 
+    score - the confidence of the model with his answer
+    the main function imported from here is predict_toxicity. it activates a pipeline
+    for predicting it the input text is toxic, that eventually ends with what the model predicts on processed data.
 """
 
 import re

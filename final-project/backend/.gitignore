@@ -9,5 +9,5 @@ __pycache__/
 env/
 venv/
 
-# local development
-docs*
+# local development - added to repo for now, but remove later
+# docs*
