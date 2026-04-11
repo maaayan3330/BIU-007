@@ -1,46 +1,5 @@
 """
-phase 1: safely loading and parsing a dataset into memory
-main -> loads a varaible of the file path -> calls load_evaluation_dataset(file_path)
-
-load_evaluation_dataset(file_path): 
-    - checks if file exists (use os module)
-    - inits a dataset
-    - opens the file with read permissions
-    - checks if the columns "text" and "lable" exist
-    - for each row:
-        - extract text
-        - convert the string of boolean from the file to a real boolean
-        - append to dataset
-    - returns dataset
-
-phase 2: Batch Inferencer - model execution wrapper
-add imports of time and the predict toxicity
-raw_data (from load_evaluation_dataset) -> pass to run_batch_inference
-
-run_batch_inference(raw_data):
-    - initialize recording methods
-    - go over the dataset:
-        - call predict_toxicy(text) - first call will start the model, the rest will lazy - load
-        - store the results
-        - 
-
-phase 3: Scoring Logic
-results (from run_batch_inference) -> calculate_metrics()
-calculate_metrics(results):
-    - initialize counters for the classifications
-    - go over the results and add to the relevent classifier counter
-    - calculate the metrics
-
-phase 4: Report Generation
-metrics -> save_evaluation_report
-save_evaluation_report(metrics, target_dataset): Saves the evaluation metrics to a timestamped JSON file.
-    - create output dir if does not exist
-    - create timestamp
-    - clean name of the dataset
-    - create filename and filepath variables
-    - add metadata to report
-    - write to the file
-
+evaluation feature - done
 """
 import os
 import csv
@@ -258,7 +217,7 @@ def save_evaluation_csv(evaluated_data: List[Dict], dataset_name: str, output_di
 
 if __name__ == "__main__":
     # add a file path to the csv containing the dataset
-    target_dataset = "eval_english.csv"
+    target_dataset = "eval_hebrew.csv"
     
     # pipeline
     try: 
@@ -269,7 +228,7 @@ if __name__ == "__main__":
 
         # step 2: infer
         if raw_data:
-            results = run_batch_inference(raw_data[:100]) # remove this :100 when ready to test the whole dataset
+            results = run_batch_inference(raw_data)
             print("\nSample Output Record:")
             print(results[0])
         

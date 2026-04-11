@@ -1,3 +1,0 @@
-text,expected_is_toxic
-"""You are a wonderful person.""",false
-"""I will destroy you and your family.""",True
