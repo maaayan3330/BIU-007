@@ -23,14 +23,25 @@ get_chunks(processed_text, chunk_size=15, overlap=5):
 - analyze each chunk using the model
     - if one was found toxic, lable all of it as toxic
     - return more metrics - check how main works with it
+
+phase 3: Heuristics Cache - done
+- in main, call check_heuristics
+check_heuristics(data):
+    - checks if a word exists in the no tolerance list - returns bool
+create a blocklist file in the server for now - later change to be stored on the DB
+
+phase 4: threshold for hebrew - done
 """
 
 import re
+import os
 from transformers import pipeline
 
-# A variable to store the model once
 classifier = None
-THRESHOLD = 0.7
+HEBREW_THRESHOLD = 0.65
+DEFAULT_THRESHOLD = 0.7
+BLOCKLIST_FILE = "blocklist.txt"
+ZERO_TOLERANCE_LIST = []
 
 def clean_text(text: str) -> str:
     """
@@ -47,6 +58,13 @@ def clean_text(text: str) -> str:
     cleaned = re.sub(r'\s+', ' ', cleaned).strip()
     
     return cleaned
+
+def is_hebrew(text: str) -> bool:
+    """
+    Checks if the text contains any Hebrew characters.
+    Hebrew Unicode range is \u0590 to \u05FF.
+    """
+    return bool(re.search(r'[\u0590-\u05FF]', text))
 
 def get_classifier():
     """
@@ -85,29 +103,70 @@ def get_chunks(text: str, chunk_size: int = 15, overlap: int = 5) -> list[str]:
 
     return chunks
 
+def check_heuristics(text: str) -> bool:
+    text_lower = text.lower()
+    for phrase in ZERO_TOLERANCE_LIST:
+        if phrase in text_lower:
+            return True
+    return False
+
+def load_file(file_path: str):
+    """
+    Loads file contents to the zero tolerance list
+    """
+    global ZERO_TOLERANCE_LIST
+
+    if not os.path.exists(BLOCKLIST_FILE):
+        print(f"warning: {BLOCKLIST_FILE} not found. runs without heuristics")
+        return
+    
+    # use utf-8 encoding
+    with open(BLOCKLIST_FILE, "r", encoding="utf-8") as file:
+        loaded_list = []
+        for line in file:
+            # Strip whitespace and convert to lowercase
+            cleaned_line = line.strip().lower()
+            
+            # Ignore empty lines and comments
+            if cleaned_line and not cleaned_line.startswith("#"):
+                loaded_list.append(cleaned_line)
+
+        ZERO_TOLERANCE_LIST = loaded_list
+        print(f"Successfully loaded {len(ZERO_TOLERANCE_LIST)} terms into the blocklist.")
+
+load_file(BLOCKLIST_FILE) # Load the file immediately when the script runs - eager loading to memory
+
 # The function the server uses to get prediction for toxicy on input text
 def predict_toxicity(text: str):
     # 1: clean the text before the model processes it
     processed_text = clean_text(text)
+
+    # 2: check for hebrew and update treshold if needed
+    threshold = HEBREW_THRESHOLD if is_hebrew(processed_text) else DEFAULT_THRESHOLD
     
-    # 2: load the model
+    # 3: check the cache for zero tolerence words
+    if check_heuristics(processed_text):
+        return {
+            "label": "label_1",
+            "score": 1.0, # 100% certain because it hit a hardcoded rule
+            "is_toxic": True,
+            "blocked_by": "heuristics"
+        }
+
+    # 4: load the model and check the result
     model = get_classifier() # lazy loading the model each time
     result = model(processed_text)
 
-
+    # 5: extract results
     top = result[0]
     label = str(top["label"]).lower()
     score = float(top["score"])
-    # Make a decision if it toxic
-    is_toxic = (label == "label_1") and (score >= THRESHOLD)
+    # Make a decision if its toxic
+    is_toxic = (label == "label_1") and (score >= threshold)
         
     return {
         "label": label,
         "score": score,
         "is_toxic": is_toxic
     }
-
-if __name__ == "__main__": # only for testing - remove this later
-    text = "ש-ר-מ-ו-ט-ה"
-    print(clean_text(text))
 
