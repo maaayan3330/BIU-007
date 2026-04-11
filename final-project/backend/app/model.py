@@ -47,8 +47,8 @@ def clean_text(text: str) -> str:
     """
     incharge of preprocessing & normalization of the input text 
     """
-    # 1. Remove common obfuscation characters
-    cleaned = re.sub(r'[\-\.\*\_\|\@]', '', text)
+    # 1. Remove common obfuscation characters with a space
+    cleaned = re.sub(r'[\-\.\*\_\|\@]', ' ', text)
     
     # 2. Collapse repeating characters
     # If a character repeats 3 or more times, collapse it down to 1.
@@ -80,7 +80,7 @@ def get_classifier():
         )
     return classifier
 
-def get_chunks(text: str, chunk_size: int = 15, overlap: int = 5) -> list[str]:
+def get_chunks(text: str, chunk_size: int = 8, overlap: int = 3) -> list[str]:
     """
     takes a text and splits it into overlapping chunks
     """
@@ -152,21 +152,62 @@ def predict_toxicity(text: str):
             "is_toxic": True,
             "blocked_by": "heuristics"
         }
+    
+    # 4: split data into chunks
+    chunks = get_chunks(processed_text)
 
-    # 4: load the model and check the result
-    model = get_classifier() # lazy loading the model each time
-    result = model(processed_text)
+    # 4.5: load the model and check each chunk
+    model = get_classifier()
+    highest_score = 0.0 # keeps track of the highest score of confidence
+    is_toxic = False # initialized return value
+    flagged_chunk = None
+    label = None
+    score = 0.0 
 
-    # 5: extract results
-    top = result[0]
-    label = str(top["label"]).lower()
-    score = float(top["score"])
-    # Make a decision if its toxic
-    is_toxic = (label == "label_1") and (score >= threshold)
+    # Evaluate each chunk
+    for chunk in chunks:
+        if not chunk.strip():
+            continue
+            
+        result = model(chunk)
+        top = result[0]
+        label = str(top["label"]).lower()
+        score = float(top["score"])
         
+        # Track the highest toxic score for debugging
+        if label == "label_1" and score > highest_score:
+            highest_score = score
+            
+        # If any single chunk crosses the threshold, flag the whole text
+        if label == "label_1" and score >= threshold:
+            is_toxic = True
+            flagged_chunk = chunk
+            # We break early to save server resources — no need to check the rest
+            break
+        
+    final_label = "label_1" if is_toxic else "label_2"
+    
     return {
-        "label": label,
-        "score": score,
-        "is_toxic": is_toxic
+        "label": final_label,
+        "score": highest_score, # Return the peak toxicity found
+        "is_toxic": is_toxic,
+        "flagged_chunk": flagged_chunk # Highly recommend returning this for your dataset review!
     }
+
+    # # 4: load the model and check the result
+    # model = get_classifier() # lazy loading the model each time
+    # result = model(processed_text)
+
+    # # 5: extract results
+    # top = result[0]
+    # label = str(top["label"]).lower()
+    # score = float(top["score"])
+    # # Make a decision if its toxic
+    # is_toxic = (label == "label_1") and (score >= threshold)
+        
+    # return {
+    #     "label": label,
+    #     "score": score,
+    #     "is_toxic": is_toxic
+    # }
 

@@ -217,7 +217,7 @@ def save_evaluation_csv(evaluated_data: List[Dict], dataset_name: str, output_di
 
 if __name__ == "__main__":
     # add a file path to the csv containing the dataset
-    target_dataset = "patterns.csv"
+    target_dataset = "eval_hebrew.csv"
     
     # pipeline
     try: 
@@ -228,7 +228,7 @@ if __name__ == "__main__":
 
         # step 2: infer
         if raw_data:
-            results = run_batch_inference(raw_data) # remove this :100 when ready to test the whole dataset
+            results = run_batch_inference(raw_data)
             print("\nSample Output Record:")
             print(results[0])
         
