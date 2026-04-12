@@ -17,13 +17,18 @@ DEFAULT_THRESHOLD = 0.7
 BLOCKLIST_FILE = "blocklist.txt"
 ZERO_TOLERANCE_LIST = []
 
+# --- hyperparameters for semantic chunking ---
+MAX_CHUNK_LENGTH = 12
+HEBREW_CONJUNCTIONS = {"אבל", "כי", "לכן", "אלא", "ואילו", "בגלל", "מכיוון"}
+STRONG_PUNCT = {".", "!", "?", "\n"}
+SOFT_PUNCT = {",", ";", ":"}
+
 def clean_text(text: str) -> str:
     """
     incharge of preprocessing & normalization of the input text 
     """
     # 1. Remove common obfuscation characters with a space
-    cleaned = re.sub(r'[\-\.\*\_\|\@]', ' ', text)
-    
+    cleaned = re.sub(r'[\*\_\|\@\!\#\$\%\^]', ' ', text) # make this more efficient using negation!        
     # 2. Collapse repeating characters
     # If a character repeats 3 or more times, collapse it down to 1.
     cleaned = re.sub(r'(.)\1{2,}', r'\1', cleaned)
@@ -54,7 +59,7 @@ def get_classifier():
         )
     return classifier
 
-def get_chunks(text: str, chunk_size: int = 8, overlap: int = 3) -> list[str]:
+def get_sliding_window_chunks(text: str, chunk_size: int = 8, overlap: int = 3) -> list[str]:
     """
     takes a text and splits it into overlapping chunks
     """
@@ -110,13 +115,79 @@ def load_file(file_path: str):
 
 load_file(BLOCKLIST_FILE) # Load the file immediately when the script runs - eager loading to memory
 
+def get_semantic_chunks(text, max_length):
+    """
+    Splits Hebrew text logically based on punctuation and conjunctions.
+    Merges segments back together up to max_length.
+    """
+    # 1: split to words and check length
+    words = text.split()
+    if len(words) < max_length:
+        return [text]
+    
+    micro_segments = []
+    current_segment = []
+
+    # 2: split to micro chuncks
+    for word in words:
+        # Strip punctuation just to check if the core word is a conjunction
+        clean_word = re.sub(r'[^a-zA-Z0-9\s]', '', word) # remove every non alphanumeric character
+
+        # split before conjunctions (segment... clean_word = "או")
+        if clean_word in HEBREW_CONJUNCTIONS and current_segment:
+            micro_segments.append(" ".join(current_segment))
+            current_segment = [word]
+            continue # move on to the next word
+
+        current_segment.append(word) # add word to current segment
+
+        # split after punctuation
+        if any(word.endswith(p) for p in STRONG_PUNCT | SOFT_PUNCT):
+            micro_segments.append(" ".join(current_segment))
+            current_segment = []
+    
+    if current_segment: # if finished segment early, add to the list 
+        micro_segments.append(" ".join(current_segment))
+    
+    # 3: reasseble the chunks to size max_length - the greedy approach
+    final_chunks = []
+    current_chunk_words = []
+
+    for segment in micro_segments:
+        segment_words = segment.split()
+        if not segment_words:
+            continue
+
+        # If adding this segment keeps us under the limit, glue them together
+        if len(current_chunk_words) + len(segment_words) <= max_length:
+            current_chunk_words.extend(segment_words)
+        else:
+            # Over the limit: save current chunk and start a new one
+            if current_chunk_words:
+                final_chunks.append(" ".join(current_chunk_words))
+            current_chunk_words = segment_words
+
+    if current_chunk_words:
+        final_chunks.append(" ".join(current_chunk_words))
+    
+    # 4: catch any chunk that is still too long (edge case for no puncuations or conjunctions)
+    safe_chunks = []
+    for chunk in final_chunks:
+        if len(chunk.split()) > max_length:
+            safe_chunks.extend(get_sliding_window_chunks(chunk, chunk_size=max_length, overlap=3))
+        else:
+            safe_chunks.append(chunk)
+
+    return final_chunks
+    
 # The function the server uses to get prediction for toxicy on input text
 def predict_toxicity(text: str):
     # 1: clean the text before the model processes it
     processed_text = clean_text(text)
 
     # 2: check for hebrew and update treshold if needed
-    threshold = HEBREW_THRESHOLD if is_hebrew(processed_text) else DEFAULT_THRESHOLD
+    is_heb = is_hebrew(processed_text)
+    threshold = HEBREW_THRESHOLD if is_heb else DEFAULT_THRESHOLD
     
     # 3: check the cache for zero tolerence words
     if check_heuristics(processed_text):
@@ -127,13 +198,17 @@ def predict_toxicity(text: str):
             "blocked_by": "heuristics"
         }
     
-    # 4: split data into chunks
-    chunks = get_chunks(processed_text)
+    # 4: routing according to language
+    if is_heb:
+        # Hebrew gets semantic chunking to protect morphology
+        chunks = get_semantic_chunks(processed_text, max_length=MAX_CHUNK_LENGTH)
+    else:
+        # other languages are passed entirely to the model without chunking
+        chunks = [processed_text]
 
     # 5: load the model and define variables
     model = get_classifier()
-    highest_toxic_score = 0.0 # keeps track of the highest score of confidence
-    highest_safe_score = 0.0
+    highest_score = 0.0 # keeps track of the highest score of confidence
     is_toxic = False # initialized return value
     flagged_chunk = None
     label = None
@@ -149,29 +224,24 @@ def predict_toxicity(text: str):
         label = str(top["label"]).lower()
         score = float(top["score"])
         
-        if label == "label_1":
-            # Track the highest toxic score
-            if score > highest_toxic_score:
-                highest_toxic_score = score
-                
-            # If any single chunk crosses the threshold, flag the whole text
-            if score >= threshold:
-                is_toxic = True
-                flagged_chunk = chunk
-                # We break early to save server resources — no need to check the rest
-                break
-                
-        else:
-            # Track the highest safe score for non-toxic confidence
-            if score > highest_safe_score:
-                highest_safe_score = score
+        # Track the highest toxic score for debugging
+        if label == "label_1" and score > highest_score:
+            highest_score = score
+            
+        # If any single chunk crosses the threshold, flag the whole text
+        if label == "label_1" and score >= threshold:
+            is_toxic = True
+            flagged_chunk = chunk
+            # We break early to save server resources — no need to check the rest
+            break
         
     final_label = "label_1" if is_toxic else "label_2"
-    final_score = highest_toxic_score if is_toxic else highest_safe_score
     
     return {
         "label": final_label,
-        "score": final_score, # Return the peak toxicity found
+        "score": highest_score, # Return the peak toxicity found
         "is_toxic": is_toxic,
         "flagged_chunk": flagged_chunk # Highly recommend returning this for your dataset review!
     }
+
+
