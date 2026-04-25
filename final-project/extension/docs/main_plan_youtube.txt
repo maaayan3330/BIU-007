@@ -1,0 +1,74 @@
+flow of automation: once the user clicks "report to platform"
+    * cloak the page to prevent the user seeing the report menu pop up.
+    a. click 3 dots
+    b. wait for the report to come up
+    c. click the report button
+    d. choose the correct type of report by using categorization of the model (for now - choose something the always fits)
+    e. click report 
+    f. wait for the menu to switch
+    g. click the approve button to return to the page 
+    h. return a message to the user signaling success
+    i. send the report to the server.
+
+
+plan:
+Phase 1: User Interface & State Management
+    Action Binding: Attach an onClick event to a "Report to platform" button.
+
+    Visual Feedback: Immediately disable the button and swap the text to a loading state (e.g., "Reporting...") or show a spinner. 
+    This prevents the user from clicking multiple times while the DOM script runs in the background.
+
+    Message Passing: Dispatch a message from the UI component to the Chrome extension's content script indicating 
+    which specific comment needs to be processed.
+
+Phase 2: Cloaked DOM Automation (Content Script)
+This is the core script that mimics the human flow without the user seeing the YouTube pop-ups.
+
+    Engage Cloaking: Inject a <style> tag into the document <head> to visually 
+    hide the specific elements YouTube uses for its reporting flow (<tp-yt-paper-dialog>, <ytd-menu-popup-renderer>, etc.).
+
+    DOM Traversal Sequence:
+
+        Locate the Action Menu: Use the commentId to find the associated comment container, then query for the "Action menu" (the three vertical dots). Trigger .click().
+
+        Select 'Report': Use a MutationObserver or an interval to wait for the dropdown menu to appear in the DOM. Query for the button containing the text "Report" and click it.
+
+        Category Selection (Hardcoded):
+
+            Wait for the reporting modal to render.
+
+            Query the list of radio buttons for the label containing "Hateful or abusive content".
+
+        Trigger a click on that specific radio button or its associated container.
+
+    Submission:
+
+    Find the "Report" submit button at the bottom of the modal and trigger .click().
+
+    Cleanup & Confirmation:
+
+        Wait for the success toast/notification to render in the DOM (this indicates the 1.1s API call has finished successfully).
+
+        Click "Close" on the hidden toast.
+
+        Remove the cloaking <style> tag.
+
+        Send a message back to the React UI confirming success.
+
+Phase 3: Backend Synchronization (Node.js & PostgreSQL)
+    Once the platform report is successfully submitted, record the event in your own system to drive the project's community statistics.
+
+    API Call: From the content script (or background script), make a REST API call to your Express server.
+
+    Database Update: The Express route inserts this record into the PostgreSQL database.
+
+Phase 4: Future-Proofing for AI Integration
+Build the function signature in the content script to accept the category as a parameter,
+for future changes.
+
+
+changes in youtube.js:
+
+changes in ui.js:
+
+changes in api.js:

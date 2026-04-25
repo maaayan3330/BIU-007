@@ -15,7 +15,7 @@ async function processYouTube() {
  
   // For every comment
   for (const comment of comments) {
-    // If we allredy check so skip
+    // If already checked - skip
     if (comment.dataset.checked === "true") continue;
     // Get the text of the comment
     const text = comment.innerText || "";

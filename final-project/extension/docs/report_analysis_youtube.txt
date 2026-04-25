@@ -1,0 +1,123 @@
+report made by AI on how the report process is done in youtube.
+
+## AI
+
+### Listing network requests…
+
+**Code executed:**
+```
+listNetworkRequest()
+```
+
+**Data returned:**
+```
+[{"id":"16100.1344","url":"https://www.youtube.com/youtubei/v1/log_event?alt=json","statusCode":200,"duration":"136 ms","transferSize":"0.1 kB"},{"id":"16100.1345","url":"https://www.youtube.com/youtubei/v1/log_event?alt=json","statusCode":200,"duration":"264 ms","transferSize":"0.1 kB"},{"id":"16100.1346","url":"https://www.youtube.com/youtubei/v1/get_panel?prettyPrint=false","statusCode":200,"duration":"181 ms","transferSize":"2.0 kB"},{"id":"16100.1347","url":"https://www.youtube.com/s/_/ytmainappweb/_/js/k=ytmainappweb.kevlar_base.en_US.d5Q_Sh18DeQ.es5.O/am=AAAAAAEABgg/d=1/exm=De8mUc,JWTrfb,LA5gyd,Le4Nlc,QlbBce,Raq4cb,SU3ui,bGmj1b,iai2ic,izjmP,kevlar_base_module,kevlar_main_module,pevtvc,tPgYzd,yTIahe/ed=1/br=1/rs=AGKMywHiCoPEgjyPeSyktOi6hDu0fNhUWw/m=i6Xome","statusCode":200,"duration":"74 ms","transferSize":"0.0 kB"},{"id":"16100.1348","url":"https://www.youtube.com/s/_/ytmainappweb/_/js/k=ytmainappweb.kevlar_base.en_US.d5Q_Sh18DeQ.es5.O/am=AAAAAAEABgg/d=1/exm=De8mUc,JWTrfb,LA5gyd,Le4Nlc,QlbBce,Raq4cb,SU3ui,bGmj1b,iai2ic,izjmP,kevlar_base_module,kevlar_main_module,pevtvc,tPgYzd,yTIahe/ed=1/br=1/rs=AGKMywHiCoPEgjyPeSyktOi6hDu0fNhUWw/m=i6Xome","statusCode":200,"duration":"72 ms","transferSize":"0.9 kB"},{"id":"16100.1349","url":"https://www.youtube.com/youtubei/v1/flow?prettyPrint=false","statusCode":200,"duration":"1.06 s","transferSize":"1.7 kB"},{"id":"16100.1350","url":"https://www.youtube.com/img/flagging/confirm-dark.png","statusCode":200,"duration":"37 ms","transferSize":"35.9 kB"}]
+```
+
+### Getting network request…
+
+### Analyzing network data
+
+**Request:**
+````
+Request URL: https://www.youtube.com/youtubei/v1/flow?prettyPrint=false
+
+Request headers:
+:authority: www.youtube.com
+:method: POST
+:path: /youtubei/v1/flow?prettyPrint=false
+:scheme: https
+accept: */*
+accept-encoding: gzip, deflate, br, zstd
+accept-language: en-US,en;q=0.9
+authorization: <redacted>
+content-encoding: gzip
+content-length: <redacted>
+content-type: application/json
+cookie: <redacted>
+device-memory: <redacted>
+origin: https://www.youtube.com
+priority: <redacted>
+referer: https://www.youtube.com/watch?v=JopuDXR8crA
+sec-ch-dpr: <redacted>
+sec-ch-ua: <redacted>
+sec-ch-ua-arch: <redacted>
+sec-ch-ua-bitness: <redacted>
+sec-ch-ua-form-factors: <redacted>
+sec-ch-ua-full-version: <redacted>
+sec-ch-ua-full-version-list: <redacted>
+sec-ch-ua-mobile: <redacted>
+sec-ch-ua-model: <redacted>
+sec-ch-ua-platform: <redacted>
+sec-ch-ua-platform-version: <redacted>
+sec-ch-ua-wow64: <redacted>
+sec-ch-viewport-width: <redacted>
+sec-fetch-dest: <redacted>
+sec-fetch-mode: <redacted>
+sec-fetch-site: <redacted>
+````
+
+**Response:**
+````
+Response headers:
+alt-svc: h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
+content-encoding: br
+content-length: <redacted>
+content-type: application/json; charset=UTF-8
+date: Sat, 25 Apr 2026 11:18:17 GMT
+server: scaffolding on HTTPServer2
+vary: Origin
+vary: X-Origin
+vary: Referer
+x-content-type-options: nosniff
+x-frame-options: SAMEORIGIN
+x-xss-protection: 0
+
+Response body:
+{"responseContext":{"serviceTrackingParams":[{"service":"CSI","params":[{"key":"c","value":"WEB"},{"key":"cver","value":"2.20260424.01.00"},{"key":"yt_li","value":"1"},{"key":"GetAbuseReportFlow_rid","value":"0xccfa884576e21869"}]},{"service":"GFEEDBACK","params":[{"key":"logged_in","value":"1"}]},{"service":"GUIDED_HELP","params":[{"key":"logged_in","value":"1"}]},{"service":"ECATCHER","params":[{"key":"client.version","value":"2.20260424"},{"key":"client.name","value":"WEB"}]}],"mainAppWebResponseContext":{"datasyncId":"106383975024601798078||","loggedOut":false},"responseId":"IhMI1634zfCIlAMVRFl6BR17TDXL","webResponseContextExtensionData":{"webResponseContextPreloadData":{"preloadMessageNames":["flowStepRenderer","reportFormConfirmationPageViewModel","flowTopBarRenderer","buttonRenderer","reportFormBottomBarViewModel","buttonViewModel"]},"hasDecorated":true}},"updateFlowCommand":{"clickTrackingParams":"CAAQrYUNIhMI1634zfCIlAMVRFl6BR17TDXLygEEw7JT9A==","commandExecutorCommand":{"commands":[{"clickTrackingParams":"CAAQrYUNIhMI1634zfCIlAMVRFl6BR17TDXLygEEw7JT9A==","hideReportedCommentAction":{"commentId":"UgxgrpfH4wYbIy9Edot4AaABAg"}},{"clickTrackingParams":"CAAQrYUNIhMI1634zfCIlAMVRFl6BR17TDXLygEEw7JT9A==","updateFlowCommand":{"targetId":"abuse_report_flow","steps":[{"flowStepRenderer":{"stepId":"confirmation_page_step","content":{"reportFormConfirmationPageViewModel":{"flowStateKey":"EhFhYnVzZV9yZXBvcnRfZmxvdyD8ASgB","image":{"sources":[{"url":"https://www.youtube.com/img/flagging/confirm-light.png","width":841,"height":587}],"contentMode":"CONTENT_MODE_SCALE_ASPECT_FIT"},"imageDark":{"sources":[{"url":"https://www.youtube.com/img/flagging/confirm-dark.png","width":841,"height":587}],"contentMode":"CONTENT_MODE_SCALE_ASPECT_FIT"},"confirmationHeader":"Thanks for helping our community","confirmationText":{"content":"Your report helps us protect the community from harmful content."},"whatToExpectHeader":"What you can expect","nextSteps":[{"iconName":"NOT_INTERESTED","text":{"content":"If this commenter has serious or repeated violations, we may temporarily restrict their ability to leave comments."}}],"lawEnforcementText":{"content":"If you think someone is in immediate danger, please contact local law enforcement."},"loggingDirectives":{"trackingParams":"CAMQiOwMIhMI1634zfCIlAMVRFl6BR17TDXL","visibility":{"types":"12"}}}},"topBarOverride":{"flowTopBarRenderer":{"title":{"runs":[{"text":"Report"}]},"trailingButtons":[{"buttonRenderer":{"icon":{"iconType":"CLOSE"},"trackingParams":"CAIQ8FsYBCITCNet-M3wiJQDFURZegUde0w1yw==","accessibilityData":{"accessibilityData":{"label":"Close"}},"command":{"clickTrackingParams":"CAIQ8FsYBCITCNet-M3wiJQDFURZegUde0w1y8oBBMOyU_Q=","hideEngagementPanelEndpoint":{"identifier":{"tag":"PAabuse_report"}}}}}]}},"bottomBar":{"reportFormBottomBarViewModel":{"flowStateKey":"EhFhYnVzZV9yZXBvcnRfZmxvdyD8ASgB","navButton":{"buttonViewModel":{"title":"OK","onTap":{"innertubeCommand":{"clickTrackingParams":"CAEQ8FsiEwjXrfjN8IiUAxVEWXoFHXtMNcvKAQTDslP0","hideEngagementPanelEndpoint":{"identifier":{"tag":"PAabuse_report"}}}},"style":"BUTTON_VIEW_MODEL_STYLE_MONO","trackingParams":"CAEQ8FsiEwjXrfjN8IiUAxVEWXoFHXtMNcs=","type":"BUTTON_VIEW_MODEL_TYPE_FILLED"}}}}}}],"entityUpdateCommand":{"clickTrackingParams":"CAAQrYUNIhMI1634zfCIlAMVRFl6BR17TDXLygEEw7JT9A==","entityUpdateCommand":{"entityBatchUpdate":{"mutations":[{"entityKey":"EhFhYnVzZV9yZXBvcnRfZmxvdyD8ASgB","type":"ENTITY_MUTATION_TYPE_REPLACE","payload":{"flowStateEntity":{"key":"EhFhYnVzZV9yZXBvcnRfZmxvdyD8ASgB","currentStepId":"confirmation_page_step","stepIdStack":["reason_select_page_step","confirmation_page_step"],"abuseReportFlowState":{"params":"CAISGlVneGdycGZINHdZYkl5OUVkb3Q0QWFBQkFnGqQBR2hwVlozaG5jbkJtU0RSM1dXSkplVGxGWkc5ME5FRmhRVUpCWnlnQ09sWUlBUkFDR2hwVlozaG5jbkJtU0RSM1dXSkplVGxGWkc5ME5FRmhRVUpCWnlvTFNtOXdkVVJZVWpoamNrRXdBS2dCRExvQkdGVkRVbEIyYVhaTlNEUm9YM0ZSVldaQmNVMUJTekZwVWVBQkFQQUJBUGdDQVElM0QlM0Q%3D","reasonKey":"VIOLENCE","navigationEnabled":true,"pageType":"REPORT_FORM_PAGE_TYPE_DIALOG","isReportFormDirty":true}}}}]}}}}}]}}}
+
+Response status: 200 
+Network request status: finished
+````
+
+**Timing:**
+````
+Queued at (timestamp): 94.6 s
+Started at (timestamp): 94.6 s
+Queueing (duration): 4 ms
+Connection start (stalled) (duration): 2 ms
+Request sent (duration): 1 ms
+Waiting for server response (duration): 1.1 s
+Content download (duration): 1 ms
+Duration (duration): 1.1 s
+````
+
+**Request initiator chain:**
+````
+- URL: https://www.youtube.com/youtubei/v1/flow?prettyPrint=false
+````
+
+### Answer
+
+This network request is a critical part of the YouTube comment reporting workflow. It utilizes the **YouTube InnerTube API** (`/youtubei/v1/flow`) to process a user's report and transition the UI to the confirmation state.
+
+### Purpose
+This is a **POST** request sent when a user submits a report for a specific comment. Its primary functions are:
+1.  **Server-side Processing:** It sends the report details (reason: `VIOLENCE`) for comment ID `UgxgrpfH4wYbIy9Edot4AaABAg`.
+2.  **UI State Management:** The response instructs the web client to perform a `hideReportedCommentAction` (removing the comment from the user's view) and updates the "Report" dialog to the `confirmation_page_step`.
+3.  **Content Delivery:** The response payload contains the localized text and image assets (e.g., "Thanks for helping our community") to be displayed in the success toast or dialog.
+
+### Timing Analysis
+*   **Total Duration:** 1.1 seconds.
+*   **Waiting for Server Response (TTFB):** 1.1 seconds.
+*   **Analysis:** Almost the entire duration is spent waiting for the server to process the report. For a social platform, 1.1s is a relatively high latency for a backend action. This suggests the server is likely performing several synchronous operations, such as writing to multiple databases, triggering fraud/spam detection hooks, or communicating with a secondary moderation service before acknowledging the request.
+*   **Queueing/Download:** These are negligible (4ms and 1ms), indicating that the client-side network stack and the size of the data transfer are not bottlenecks.
+
+### Status & Potential Issues
+*   **Status 200 OK:** The request was successful. The server acknowledged the report and returned the next flow instructions.
+*   **Complexity:** The response uses a complex "Command" pattern (`updateFlowCommand`, `entityUpdateCommand`). If the UI fails to update despite a 200 status, the issue likely lies in the client-side execution of these specific commands rather than the network layer.
+*   **Security:** The request includes an `authorization` header and `cookies`, which are standard for authenticated InnerTube requests to ensure the report is tied to a valid user account.
+
+### Key Observations for Developers
+*   **Comment ID:** The targeted comment is explicitly identified in the `hideReportedCommentAction`.
+*   **State Persistence:** The `flowStateKey` and `abuseReportFlowState.params` (base64 encoded) carry the state of the reporting wizard, allowing the "Flow" API to be stateless on the server while keeping track of where the user is in the reporting process.
