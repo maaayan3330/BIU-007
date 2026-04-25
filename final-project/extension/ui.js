@@ -1,10 +1,9 @@
 console.log("UI module loaded");
 
-function blurElement(element) {
+function blurElement(element, onReportClick) {
   if (element.dataset.toxicProcessed === "true") return;
 
-  element.classList.add("blurred");
-  element.classList.add("toxic-content");
+  element.classList.add("blurred", "toxic-content");
 
   const banner = document.createElement("div");
   banner.className = "toxic-banner";
@@ -17,45 +16,61 @@ function blurElement(element) {
   const buttonContainer = document.createElement("div");
   buttonContainer.className = "toxic-button-group";
 
-  const button = document.createElement("button");
-  button.className = "toxic-toggle-btn";
-  button.innerText = "Show";
+  const showHideButton = document.createElement("button");
+  showHideButton.className = "toxic-toggle-btn";
+  showHideButton.innerText = "Show";
 
-  const report_button = document.createElement("button");
-  report_button.className = "toxic-toggle-btn";
-  report_button.innerText = "Report to platform";
+  const reportButton = document.createElement("button");
+  reportButton.className = "toxic-toggle-btn"; 
+  reportButton.innerText = "Report to platform";
 
   let isHidden = true;
 
-  button.addEventListener("click", () => {
+  showHideButton.addEventListener("click", () => {
     isHidden = !isHidden;
 
     if (isHidden) {
       element.classList.add("blurred");
-      button.innerText = "Show";
+      showHideButton.innerText = "Show";
     } else {
       element.classList.remove("blurred");
-      button.innerText = "Hide";
+      showHideButton.innerText = "Hide";
     }
   });
 
-  // Placeholder for the automated reporting DOM traversal script
-  report_button.addEventListener("click", () => {
-    report_button.innerText = "Reporting...";
-    report_button.disabled = true;
+  reportButton.addEventListener("click", async () => {
+    if (typeof onReportClick !== 'function') {
+      console.error("Guardian: No reporting handler provided for this platform.");
+      return;
+    }
+
+    reportButton.innerText = "Reporting...";
+    reportButton.disabled = true;
+    reportButton.style.cursor = "wait";
     
-    // Trigger the background script / DOM automation here
-    console.log("Triggering automated platform report...");
+    // Trigger the DOM automation passed in from youtube.js/twitter.js
+    const success = await onReportClick(element, "Hateful or abusive content");
+
+    if (success) {
+      reportButton.innerText = "Reported";
+      reportButton.style.backgroundColor = "green";
+      reportButton.style.color = "white"; 
+      reportButton.style.cursor = "default";
+    } else {
+      reportButton.innerText = "Report Failed";
+      reportButton.disabled = false;
+      reportButton.style.cursor = "pointer";
+    }
   });
 
   // Append both buttons to the container
-  buttonContainer.appendChild(button);
-  buttonContainer.appendChild(report_button);
+  buttonContainer.appendChild(showHideButton);
+  buttonContainer.appendChild(reportButton);
 
   // Append the warning and the button container to the banner
   banner.appendChild(warning);
   banner.appendChild(buttonContainer);
-  
+
   element.parentNode.insertBefore(banner, element);
 
   element.dataset.toxicProcessed = "true";

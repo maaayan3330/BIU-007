@@ -39,7 +39,7 @@ This is the core script that mimics the human flow without the user seeing the Y
 
             Query the list of radio buttons for the label containing "Hateful or abusive content".
 
-        Trigger a click on that specific radio button or its associated container.
+            Trigger a click on that specific radio button or its associated container.
 
     Submission:
 
@@ -67,8 +67,20 @@ Build the function signature in the content script to accept the category as a p
 for future changes.
 
 
-changes in youtube.js:
 
-changes in ui.js:
+changes in ui.js: presentation layer
+1. add button for report
+2. update blurElement to accept onReportClick as an arg for reporting and when user clicks, run it. 
+
+changes in youtube.js: platform adapter
+1. utilities: waitForElement and toggleCloak
+2. automation: executeReportSequence
+3. api call
+4. update webhook - processComments, with the executeReportSequence.
+
+
+changes in twitter.js:
+same as youtube.js - more specific to twitter DOM.
 
 changes in api.js:
+1. handle the api post requests from extension.
