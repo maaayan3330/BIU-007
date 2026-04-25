@@ -43,3 +43,15 @@
 .toxic-toggle-btn:hover {
   opacity: 0.9;
 }
+
+.toxic-banner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  /* other styles... */
+}
+
+.toxic-button-group {
+  display: flex;
+  gap: 5px; /* Adds space between the Show and Report buttons */
+}

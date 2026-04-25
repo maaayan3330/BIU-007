@@ -1,0 +1,82 @@
+## AI
+
+### Analyzing network data
+
+**Request:**
+````
+Request URL: http://127.0.0.1:8000/predict
+
+Request headers:
+sec-ch-ua-platform: <redacted>
+Referer: 
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36
+sec-ch-ua: <redacted>
+Content-Type: application/json
+sec-ch-ua-mobile: <redacted>
+````
+
+**Response:**
+````
+Network request status: finished, failed
+CORS error: LocalNetworkAccessPermissionDenied 
+Fail description: net::ERR_FAILED
+````
+
+**Timing:**
+````
+Queued at (timestamp): 54.9 s
+Started at (timestamp): 54.9 s
+Connection start (stalled) (duration): -
+Duration (duration): 109 ms
+````
+
+**Request initiator chain:**
+````
+- URL: http://127.0.0.1:8000/predict
+````
+
+### Answer
+
+Based on the network logs provided, the request to `http://127.0.0.1:8000/predict` failed because of a **Private Network Access (PNA)** security restriction.
+
+### Error Analysis
+The critical failure point is the CORS error: **`LocalNetworkAccessPermissionDenied`** (`net::ERR_FAILED`).
+
+This occurs because modern browsers (like Chrome) implement strict security policies when a "public" website (like a site hosted on the internet) attempts to make a request to a "private" or "local" network address (like `127.0.0.1` or `localhost`).
+
+### Why it's failing:
+1.  **Security Context:** The browser detected that the initiating website is in a more public security zone than the target (`127.0.0.1`). 
+2.  **Missing Preflight/Permission:** The browser requires an explicit "Preflight" check for these types of requests. The server at `127.0.0.1:8000` likely did not respond with the necessary headers to permit access from a public context to your local machine.
+3.  **Local Network Access Policy:** Chrome recently tightened restrictions on "Private Network Access" to prevent websites from attacking devices on a user's local network (CSRF protection for local services).
+
+### How to Fix It:
+
+**1. Server-Side Headers (Recommended)**
+Your backend server at `127.0.0.1:8000` must handle the `OPTIONS` (preflight) request and include the following header in its response:
+
+`````
+http
+Access-Control-Allow-Private-Network: true
+`````
+
+Additionally, ensure standard CORS headers are present:
+
+`````
+http
+Access-Control-Allow-Origin: [Your Website URL]
+Access-Control-Allow-Methods: POST, GET, OPTIONS
+`````
+
+
+**2. Use a Consistent Environment**
+If you are developing locally, ensure the frontend is also running on `localhost` (e.g., `http://localhost:3000`). If the frontend and backend are both on the local network, the browser will treat them as being in the same security zone, and the `LocalNetworkAccessPermissionDenied` error should disappear.
+
+**3. Check Browser Flags (For Debugging Only)**
+You can temporarily disable this security feature in Chrome for testing purposes by navigating to:
+`chrome://flags/#block-insecure-private-network-requests`
+*Set this to **Disabled**, but remember to re-enable it afterward, as it is a vital security feature.*
+
+### Summary of Request Data:
+*   **Purpose:** A JSON `POST` (implied by `Content-Type`) to an inference/prediction endpoint.
+*   **Timing:** The request failed very quickly (109ms), which is typical for a browser-level block before the actual data is sent.
+*   **Status:** `failed` because the browser blocked the connection before it reached the server.

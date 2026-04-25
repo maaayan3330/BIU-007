@@ -40,12 +40,12 @@ def predict(request: PredictRequest):
     is_toxic = result.get("is_toxic")
 
     # log to txt file
-    log_prediction(
-        text=request.text,
-        platform=request.platform if hasattr(request, "platform") else "unknown",
-        label=label,
-        score=score,
-        is_toxic=is_toxic
-    )
+    # log_prediction(
+    #     text=request.text,
+    #     platform=request.platform if hasattr(request, "platform") else "unknown",
+    #     label=label,
+    #     score=score,
+    #     is_toxic=is_toxic
+    # )
 
     return PredictResponse(**result)
