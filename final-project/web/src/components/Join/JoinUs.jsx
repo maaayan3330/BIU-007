@@ -5,7 +5,6 @@ import { benefits, steps } from "../../data/joinData";
 export default function JoinUs() {
   return (
     <div className="min-h-screen bg-[#f6faf8] text-slate-900">
-      <Header />
 
       <main>
         <section className="relative overflow-hidden">

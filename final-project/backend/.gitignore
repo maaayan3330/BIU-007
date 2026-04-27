@@ -11,3 +11,9 @@ venv/
 
 # local development - added to repo for now, but remove later
 # docs*
+
+# ML model 
+Features/fine_tuning/Our_Model/
+
+# logs
+logs/
