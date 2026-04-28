@@ -8,7 +8,7 @@ export const replies = {
     en: "I'm here to help only with Guardian and digital safety related topics.",
   },
   error: {
-    he: "מצטערת, לא הצלחתי לענות כרגע.",
+    he: "מצטער, לא הצלחתי לענות כרגע.",
     en: "Sorry, I couldn't respond.",
   },
 };

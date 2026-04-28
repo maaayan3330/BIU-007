@@ -1,11 +1,12 @@
 import dotenv from "dotenv";
 import { GoogleGenAI } from "@google/genai";
-import { guardianContext } from "./context/guardianContext.js";
 import { englishPrompt } from "./prompts/englishPrompt.js";
 import { hebrewPrompt } from "./prompts/hebrewPrompt.js";
 import { isHebrew } from "./utils/languageUtils.js";
-import { isGreeting } from "./utils/greetingUtils.js";
-import { isRelevantMessage } from "./utils/relevanceUtils.js";
+import { classifyRoute } from "./utils/semanticRouter.js";
+import { guardianContextHe } from "./context/guardianContext.he.js";
+import { guardianContextEn } from "./context/guardianContext.en.js";
+
 import { replies } from "./constants/replies.js";
 
 dotenv.config();
@@ -22,19 +23,33 @@ export async function getGuardianReply(message) {
   const userWroteHebrew = isHebrew(message);
   const selectedPrompt = userWroteHebrew ? hebrewPrompt : englishPrompt;
 
-  if (isGreeting(message)) {
-    return userWroteHebrew ? replies.greeting.he : replies.greeting.en;
+  const routeResult = await classifyRoute(message);
+
+  console.log("Route:", routeResult);
+
+  if (routeResult.route === "greeting") {
+    return userWroteHebrew
+      ? replies.greeting.he
+      : replies.greeting.en;
   }
 
-  if (!isRelevantMessage(message)) {
-    return userWroteHebrew ? replies.fallback.he : replies.fallback.en;
+  if (routeResult.route === "gibberish") {
+    return userWroteHebrew
+      ? "לא בטוח שהבנתי 😊 אפשר לנסח שוב?"
+      : "I'm not sure I understood 😊 Could you rephrase?";
+  }
+
+  if (routeResult.route === "irrelevant") {
+    return userWroteHebrew
+      ? replies.fallback.he
+      : replies.fallback.en;
   }
 
   const selectedContext = userWroteHebrew
-  ? guardianContext.he
-  : guardianContext.en;
+  ? guardianContextHe
+  : guardianContextEn;
 
-const prompt = `
+  const prompt = `
 ${selectedPrompt}
 
 Product and technical context:
@@ -51,5 +66,8 @@ Assistant:
     contents: prompt,
   });
 
-  return response.text || (userWroteHebrew ? replies.error.he : replies.error.en);
+  return (
+    response.text ||
+    (userWroteHebrew ? replies.error.he : replies.error.en)
+  );
 }

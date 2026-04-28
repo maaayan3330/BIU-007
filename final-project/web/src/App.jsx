@@ -5,6 +5,8 @@ import Join from "./pages/Join";
 import Header from "./components/Home/Header";
 import ChatBot from "./chatBot/ChatBot";
 
+import EmbeddingDemo from "./components/EmbeddingDemo"; // demo!!!!
+
 export default function App() {
   const [openChat, setOpenChat] = useState(false);
 
@@ -15,6 +17,9 @@ export default function App() {
       <Routes>
         <Route path="/" element={<Home setOpenChat={setOpenChat} />} />
         <Route path="/join" element={<Join />} />
+
+        {/* demo*/}
+        <Route path="/demo" element={<EmbeddingDemo />} />
       </Routes>
 
       <ChatBot openChat={openChat} setOpenChat={setOpenChat} />
