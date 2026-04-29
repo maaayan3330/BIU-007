@@ -1,7 +1,7 @@
 import { Home, MessageCircle } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 
-export default function Header() {
+export default function Header({ setOpenChat }) {
   const location = useLocation();
 
   const isHome = location.pathname === "/";
@@ -43,7 +43,10 @@ export default function Header() {
             </Link>
           )}
 
-          <button className="flex items-center gap-2 rounded-2xl px-4 py-3 font-medium text-slate-600 transition hover:bg-slate-100">
+          <button
+            onClick={() => setOpenChat(true)}
+            className="flex items-center gap-2 rounded-2xl px-4 py-3 font-medium text-slate-600 transition hover:bg-slate-100"
+          >
             <MessageCircle size={18} />
             Chat
           </button>
