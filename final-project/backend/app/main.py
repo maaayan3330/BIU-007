@@ -22,9 +22,33 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# === GET requests ===
 @app.get("/")
 def root():
     return {"message": "API is running"}
+
+@app.get("/stats/total_comments")
+def get_total_comments(db: Session = Depends(get_db)):
+    stats = db.query(System_Stat).filter(System_Stat.id == 1).first()
+    # If stats is None (no predictions made yet), default to 0
+    return {"total_comments": stats.total_comments if stats else 0}
+
+@app.get("/stats/total_toxic_comments")
+def get_total_toxic_comments(db: Session = Depends(get_db)):
+    stats = db.query(System_Stat).filter(System_Stat.id == 1).first()
+    return {"total_toxic_comments": stats.total_toxic_comments if stats else 0}
+
+@app.get("/stats/community_members")
+def get_community_members(db: Session = Depends(get_db)):
+    stats = db.query(System_Stat).filter(System_Stat.id == 1).first()
+    return {"community_members": stats.community_members if stats else 0}
+
+@app.get("/stats/total_reports")
+def get_total_reports(db: Session = Depends(get_db)):
+    stats = db.query(System_Stat).filter(System_Stat.id == 1).first()
+    return {"total_reports": stats.total_reports if stats else 0}
+
+# === POST requests ===
 
 @app.post("/predict", response_model=PredictResponse)
 def predict(request: PredictRequest, db: Session = Depends(get_db)):
@@ -51,7 +75,7 @@ def predict(request: PredictRequest, db: Session = Depends(get_db)):
     
     # If it doesn't exist yet, create it
     if not stats:
-        stats = System_Stat(id=1, total_comments=0, total_toxic_comments=0)
+        stats = System_Stat(id=1, total_comments=0, total_toxic_comments=0, community_members=0, total_reports=0)
         db.add(stats)
     
     # Increment counters
