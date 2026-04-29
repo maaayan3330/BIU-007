@@ -17,3 +17,6 @@ Features/fine_tuning/Our_Model/
 
 # logs
 logs/
+
+# env files
+.env

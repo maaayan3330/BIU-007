@@ -31,6 +31,12 @@ Install dependencies to the virtual environment:
 pip install -r requirements.txt
 ```
 
+For the dev: create an .env file with the DB credentials
+```bash
+DATABASE_URL=postgresql://postgres:<password>@localhost:5432/the_guardian_db
+```
+
+
 If you have a "Script Execution" error run this:
 ```bash
 Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
