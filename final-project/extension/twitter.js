@@ -8,8 +8,6 @@ async function processTwitter() {
 
   const tweets = document.querySelectorAll('article[data-testid="tweet"]');
 
-  console.log("Found tweets:", tweets.length);
-
   for (const tweet of tweets) {
     if (tweet.dataset.checked === "true") continue;
 
@@ -23,9 +21,11 @@ async function processTwitter() {
     const text = textEl.innerText || "";
 
     try {
+      // This seamlessly calls the global isToxic function from your api.js file!
       const toxic = await isToxic(text, "twitter");
 
       if (toxic) {
+        // Assuming blurElement() is defined in your ui.js or content.js
         blurElement(textEl);
       }
     } catch (error) {
