@@ -12,7 +12,7 @@ class Toxic_Comment(Base):
     __tablename__ = "toxic_comments"
 
     id = Column(Integer, primary_key=True, index=True)
-    content = Column(String(128), nullable=False) 
+    content = Column(String(500), nullable=False) 
     category = Column(Enum(ToxicityCategory), nullable=False) 
     score = Column(Float, nullable=False)
 
