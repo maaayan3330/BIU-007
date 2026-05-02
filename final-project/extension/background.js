@@ -4,7 +4,6 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     // Listen for the specific action we defined in twitter.js / youtube.js
     if (request.action === "checkToxicity") {
         
-        // Notice we are using localhost, NOT 127.0.0.1
         fetch("http://localhost:8000/predict", {
             method: "POST",
             headers: {

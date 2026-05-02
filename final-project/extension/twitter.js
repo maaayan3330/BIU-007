@@ -1,4 +1,4 @@
-console.log("Twitter module loaded");
+console.log("Twitter module loaded"); // logs
 
 let isProcessingTwitter = false;
 
@@ -21,11 +21,10 @@ async function processTwitter() {
     const text = textEl.innerText || "";
 
     try {
-      // This seamlessly calls the global isToxic function from your api.js file!
+      // This seamlessly calls the global isToxic function from api.js file
       const toxic = await isToxic(text, "twitter");
 
       if (toxic) {
-        // Assuming blurElement() is defined in your ui.js or content.js
         blurElement(textEl);
       }
     } catch (error) {

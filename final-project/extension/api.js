@@ -1,8 +1,6 @@
 // For debug delete in the end
 console.log("API module loaded");
 
-// We no longer need the API_URL here because background.js handles the network request.
-
 // The main function - check if the text is toxic by asking the background script
 function isToxic(text, platform) {
   return new Promise((resolve) => {
