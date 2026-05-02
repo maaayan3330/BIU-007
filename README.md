@@ -1,32 +1,32 @@
-# AI Toxicity Filtering Platform
+### AI Toxicity Filtering Platform
 
-# Project Status: In Progress 🚧 - Final project for real-time detection and filtering of toxic content.
+### Project Status: In Progress 🚧 - Final project for real-time detection and filtering of toxic content.
 
-# 💡 Overview
+### 💡 Overview
 
 A full-stack system designed to identify and filter toxic text in real-time.
 The platform combines a fine-tuned BERT-based model, a FastAPI backend, a React web application (including a chatbot), and a Chrome Extension for live content analysis.
 
 
-# ⚙️ Backend (FastAPI)
+### ⚙️ Backend (FastAPI)
 
 The backend is responsible for all core logic and model interaction.
 
-# Main Responsibilities:
+### Main Responsibilities:
 * Receive text input from clients (extension / React app)
 * Run inference using a fine-tuned BERT model
 * Return structured prediction:
   - label
   - score
   - is_toxic
-# Additional Capabilities:
+### Additional Capabilities:
 * REST API endpoints for predictions and chatbot handling
 * Threshold-based classification logic
 * Clean modular architecture (routes, services, utils)
 * CORS configuration for frontend communication
 
  
-* 🧠 Model & Fine-Tuning
+###🧠 Model & Fine-Tuning
 Based on a pretrained BERT model
 Further fine-tuned on a custom dataset for toxicity detection
 Training process included:
@@ -39,7 +39,7 @@ Key Focus:
 * Reduce false positives and missed cases
 
   
-# 🌐 Frontend
+### 🌐 Frontend
 * React Web Application
 * Built with React
 * Includes a chatbot interface for user interaction
@@ -47,7 +47,7 @@ Key Focus:
 * Displays model responses and predictions
 
 
-# 🤖 Chatbot Logic
+### 🤖 Chatbot Logic
 User message → converted into embedding
 Compared against predefined intents using cosine similarity
 Based on similarity:
@@ -56,7 +56,7 @@ Or handled with a predefined response
 
 👉 Ensures more relevant responses and avoids unnecessary model calls.
 
-# Chrome Extension
+### Chrome Extension
 Scans user-generated content (e.g. comments)
 Sends text to backend API
 Blurs toxic content in real-time
