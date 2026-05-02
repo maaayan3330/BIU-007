@@ -1,13 +1,60 @@
-🚧 Project Status: In Progress
-This is an ongoing final project, currently under active development.
+AI Toxicity Filtering Platform
 
+Project Status: In Progress 🚧
+Final project for real-time detection and filtering of toxic content.
 
-## 🚀 Run the Project Locally
+💡 Overview
 
-This project consists of two main parts:
+A full-stack system designed to identify and filter toxic text in real-time.
+The platform combines a fine-tuned BERT-based model, a FastAPI backend, a React web application (including a chatbot), and a Chrome Extension for live content analysis.
 
-* Backend (FastAPI server)
-* Chrome Extension
+⚙️ Backend (FastAPI)
+
+The backend is responsible for all core logic and model interaction.
+
+Main Responsibilities:
+Receive text input from clients (extension / React app)
+Run inference using a fine-tuned BERT model
+Return structured prediction:
+label
+score
+is_toxic
+Additional Capabilities:
+REST API endpoints for predictions and chatbot handling
+Threshold-based classification logic
+Clean modular architecture (routes, services, utils)
+CORS configuration for frontend communication
+🧠 Model & Fine-Tuning
+Based on a pretrained BERT model
+Further fine-tuned on a custom dataset for toxicity detection
+Training process included:
+Manual collection of real-world comments (social media)
+Data cleaning and labeling
+Iterative experimentation and evaluation
+Key Focus:
+Improve detection for Hebrew language
+Handle slang and informal toxic expressions
+Reduce false positives and missed cases
+🌐 Frontend
+React Web Application
+Built with React
+Includes a chatbot interface for user interaction
+Sends user messages to backend
+Displays model responses and predictions
+🤖 Chatbot Logic
+User message → converted into embedding
+Compared against predefined intents using cosine similarity
+Based on similarity:
+Routed to LLM (Gemini)
+Or handled with a predefined response
+
+👉 Ensures more relevant responses and avoids unnecessary model calls.
+
+Chrome Extension
+Scans user-generated content (e.g. comments)
+Sends text to backend API
+Blurs toxic content in real-time
+Allows user to reveal hidden content manually
 
 ---
 
