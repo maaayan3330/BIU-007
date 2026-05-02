@@ -1,4 +1,4 @@
-console.log("Twitter module loaded");
+console.log("Twitter module loaded"); // logs
 
 let isProcessingTwitter = false;
 
@@ -7,8 +7,6 @@ async function processTwitter() {
   isProcessingTwitter = true;
 
   const tweets = document.querySelectorAll('article[data-testid="tweet"]');
-
-  console.log("Found tweets:", tweets.length);
 
   for (const tweet of tweets) {
     if (tweet.dataset.checked === "true") continue;
@@ -23,6 +21,7 @@ async function processTwitter() {
     const text = textEl.innerText || "";
 
     try {
+      // This seamlessly calls the global isToxic function from api.js file
       const toxic = await isToxic(text, "twitter");
 
       if (toxic) {
