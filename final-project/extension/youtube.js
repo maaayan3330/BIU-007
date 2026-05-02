@@ -82,7 +82,7 @@ function toggleCloak(enable) {
 // PHASE 2: AUTOMATION SEQUENCE
 // ==========================================
 
-async function executeReportSequence(commentElement) {
+async function executeReportSequence(commentElement, onModalReady) {
   let safetyTimeout;
 
   try {
@@ -118,25 +118,62 @@ async function executeReportSequence(commentElement) {
     await humanDelay(300, 600);
 
     console.log("🟢 [Guardian] Step 8: Automation complete. Dropping shield.");
-    // Remove the cloak IMMEDIATELY so the user can see and interact with the modal
     clearTimeout(safetyTimeout);
     toggleCloak(false);
 
-    console.log("🟢 [Guardian] Step 9: Attaching listener to YouTube's Submit button");
-    // Find the final report button so we can listen for the user's manual click
-    const submitBtn = document.querySelector('tp-yt-paper-dialog button[aria-label="Report"], tp-yt-paper-dialog #submit-button button') || 
-                      await waitForElementByText("Report", 2000).catch(() => null);
+    // Tell ui.js that the modal is visible and waiting for the user
+    if (onModalReady) onModalReady();
+
+    console.log("🟢 [Guardian] Step 9: Waiting for user decision...");
+
+    // Return a Promise that pauses execution until the user Submits or Cancels
+    return new Promise((resolve) => {
+      const submitBtn = document.querySelector('tp-yt-paper-dialog button[aria-label="Report"], tp-yt-paper-dialog #submit-button button') || document.querySelector('button.yt-spec-button-shape-next--call-to-action');
+      const dialog = document.querySelector('tp-yt-paper-dialog') || document.querySelector('ytd-popup-container');
+      
+      let isResolved = false;
+
+      // Helper function to clean up and resolve
+      const finish = (status) => {
+          if (isResolved) return;
+          isResolved = true;
+          observer.disconnect(); // Stop watching the DOM
+          resolve(status);
+      };
+
+      // Condition A: User clicks Submit
+      if (submitBtn) {
+          submitBtn.addEventListener('click', () => {
+              console.log("✅ [Guardian] User manually submitted the report.");
+              finish("SUCCESS");
+          }, { once: true });
+      }
+
+      // Condition B: User closes the modal without submitting
+      // We observe the dialog to see if YouTube hides it (display: none or aria-hidden: true)
+      const observer = new MutationObserver(() => {
+          if (dialog) {
+              const isHidden = dialog.style.display === 'none' || 
+                               dialog.getAttribute('aria-hidden') === 'true' || 
+                               !document.body.contains(dialog);
+              
+              if (isHidden) {
+                  console.log("⚠️ [Guardian] User closed the report modal.");
+                  finish("CANCELLED");
+              }
+          }
+      });
+
+      if (dialog) {
+          observer.observe(dialog, { 
+            attributes: true, 
+            attributeFilter: ['style', 'aria-hidden'],
+            childList: true, 
+            subtree: true 
+          });
+      }
+    });
     
-    if (submitBtn) {
-       submitBtn.addEventListener('click', () => {
-           console.log("✅ [Guardian] User manually submitted the report. Ready for Phase 3 API sync.");
-           // When you build api.js, you will call the sync function here
-       }, { once: true }); // Ensure it only fires once
-    }
-
-    // Return a specific status so the UI knows to prompt the user
-    return "PENDING_USER_CONFIRMATION";
-
   } catch (error) {
     console.error("❌ [Guardian] FAILED AT:", error);
     throw error; 

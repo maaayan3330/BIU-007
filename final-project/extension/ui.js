@@ -46,16 +46,25 @@ function blurElement(element, onReportClick) {
 
     if (onReportClick) {
       try {
-        // 2. Trigger the DOM sequence
-        const status = await onReportClick(element);
-
-        // 3. Handle the new "Hand-off" state
-        if (status === "PENDING_USER_CONFIRMATION") {
+        // 2. Trigger the DOM sequence and pass a callback to update UI when ready
+        const status = await onReportClick(element, () => {
           reportBtn.innerText = "Confirm on screen";
-          reportBtn.classList.replace("reporting-state", "reported-success");
-          
-          // Optional: You can change the button styling to indicate it's waiting
-          reportBtn.style.backgroundColor = "#555"; 
+          reportBtn.classList.replace("reporting-state", "reported-pending");
+          reportBtn.style.backgroundColor = "#555"; // Visual cue that it's waiting
+        });
+
+        // 3. Handle the final user decision
+        if (status === "CANCELLED") {
+          console.log("Guardian: User cancelled the report.");
+          // Reset button to its original state
+          reportBtn.disabled = false;
+          reportBtn.innerText = "Report to platform";
+          reportBtn.style.backgroundColor = ""; // Remove inline style
+          reportBtn.classList.remove("reported-pending");
+        } else if (status === "SUCCESS") {
+          reportBtn.innerText = "Reported ✔";
+          reportBtn.classList.replace("reported-pending", "reported-success");
+          reportBtn.style.backgroundColor = ""; // Remove inline style
         }
 
       } catch (error) {
@@ -63,6 +72,7 @@ function blurElement(element, onReportClick) {
         console.error("Guardian Reporting Sequence Failed:", error);
         reportBtn.disabled = false;
         reportBtn.innerText = "Automation Failed. Try Again?";
+        reportBtn.style.backgroundColor = "";
         reportBtn.classList.remove("reporting-state");
       }
     } else {
@@ -71,7 +81,7 @@ function blurElement(element, onReportClick) {
       reportBtn.innerText = "Report to platform";
     }
   });
-  
+
   // Create a container for the buttons
   const actionContainer = document.createElement("div");
   actionContainer.className = "toxic-actions";
