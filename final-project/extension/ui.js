@@ -1,6 +1,15 @@
 console.log("UI module loaded");
 
-// Updated to accept the onReportClick callback from the platform adapter
+/**
+ * Applies a blur effect to an element containing toxic content and inserts a warning banner.
+ * The banner includes controls to toggle the blur visibility and automate reporting the content.
+ *
+ * @param {HTMLElement} element - The DOM element containing the text to be blurred.
+ * @param {Function} [onReportClick] - Optional async callback triggered when the report button is clicked.
+ * Handles the platform-specific DOM automation sequence.
+ * Receives the original element and a UI-update callback.
+ * Should return a Promise resolving to "SUCCESS" or "CANCELLED".
+ */
 function blurElement(element, onReportClick) {
   if (element.dataset.toxicProcessed === "true") return;
 
@@ -14,7 +23,6 @@ function blurElement(element, onReportClick) {
   warning.className = "toxic-warning";
   warning.innerText = "This comment was flagged as toxic";
 
-  // --- Show/Hide Toggle Button (Existing) ---
   const button = document.createElement("button");
   button.className = "toxic-toggle-btn";
   button.innerText = "Show";
@@ -33,42 +41,35 @@ function blurElement(element, onReportClick) {
     }
   });
 
-  // --- NEW: Report Button Logic ---
   const reportBtn = document.createElement("button");
   reportBtn.className = "toxic-toggle-btn"; 
   reportBtn.innerText = "Report to platform";
 
   reportBtn.addEventListener("click", async () => {
-    // 1. Visual Feedback
     reportBtn.disabled = true;
     reportBtn.innerText = "Automating...";
     reportBtn.classList.add("reporting-state"); 
 
     if (onReportClick) {
       try {
-        // 2. Trigger the DOM sequence and pass a callback to update UI when ready
         const status = await onReportClick(element, () => {
           reportBtn.innerText = "Confirm on screen";
           reportBtn.classList.replace("reporting-state", "reported-pending");
-          reportBtn.style.backgroundColor = "#555"; // Visual cue that it's waiting
+          reportBtn.style.backgroundColor = "#555";
         });
 
-        // 3. Handle the final user decision
         if (status === "CANCELLED") {
-          console.log("Guardian: User cancelled the report.");
-          // Reset button to its original state
           reportBtn.disabled = false;
           reportBtn.innerText = "Report to platform";
-          reportBtn.style.backgroundColor = ""; // Remove inline style
+          reportBtn.style.backgroundColor = "";
           reportBtn.classList.remove("reported-pending");
         } else if (status === "SUCCESS") {
           reportBtn.innerText = "Reported ✔";
           reportBtn.classList.replace("reported-pending", "reported-success");
-          reportBtn.style.backgroundColor = ""; // Remove inline style
+          reportBtn.style.backgroundColor = "";
         }
 
       } catch (error) {
-        // 4. Error State
         console.error("Guardian Reporting Sequence Failed:", error);
         reportBtn.disabled = false;
         reportBtn.innerText = "Automation Failed. Try Again?";
@@ -82,15 +83,12 @@ function blurElement(element, onReportClick) {
     }
   });
 
-  // Create a container for the buttons
   const actionContainer = document.createElement("div");
   actionContainer.className = "toxic-actions";
 
-  // Append buttons to the container instead of the banner
   actionContainer.appendChild(reportBtn);
-  actionContainer.appendChild(button); // The show/hide button
+  actionContainer.appendChild(button);
 
-  // Append the text and the new container to the banner
   banner.appendChild(warning);
   banner.appendChild(actionContainer);
   

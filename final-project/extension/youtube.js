@@ -1,32 +1,42 @@
-console.log("YouTube module loaded"); // logs
+console.log("YouTube module loaded");
 
 let isProcessingYouTube = false;
 
 // ==========================================
-// PHASE 2: STEALTH & RESILIENCE UTILITIES
+// STEALTH & RESILIENCE UTILITIES
 // ==========================================
 
-// 1. Jitter Engine: Randomize delays to bypass basic bot detection
+/**
+ * Pauses execution for a randomized duration to simulate human interaction latency.
+ * Helps bypass basic bot-detection mechanisms.
+ * * @param {number} min - Minimum delay in milliseconds.
+ * @param {number} max - Maximum delay in milliseconds.
+ * @returns {Promise<void>}
+ */
 const humanDelay = (min = 400, max = 800) => {
   const ms = Math.floor(Math.random() * (max - min + 1) + min);
   return new Promise(resolve => setTimeout(resolve, ms));
 };
 
-// 2. Safe Selector: Upgraded to search universally within active popups
+/**
+ * Continuously polls the DOM for an element containing specific text.
+ * Optimized to only search within active YouTube popups and modals.
+ * * @param {string} text - The case-insensitive text to search for.
+ * @param {number} [maxWaitMs=5000] - Maximum time to wait before timing out.
+ * @returns {Promise<HTMLElement>} Resolves with the found element.
+ */
 const waitForElementByText = async (text, maxWaitMs = 5000) => {
   const startTime = Date.now();
   const lowerText = text.toLowerCase().trim();
 
   return new Promise((resolve, reject) => {
     const interval = setInterval(() => {
-      // Look inside ALL elements, but only within the active menu or modal containers to save performance
       const containers = document.querySelectorAll('ytd-menu-popup-renderer, tp-yt-iron-dropdown, tp-yt-paper-dialog, #iron-dropdown');
       
       let foundElement = null;
       for (const container of containers) {
         const elements = container.querySelectorAll('*');
         for (const el of elements) {
-          // Only check elements that have no children (the innermost text nodes)
           if (el.children.length === 0 && el.textContent.toLowerCase().trim().includes(lowerText)) {
             if (el.offsetWidth > 0 || el.offsetHeight > 0 || el.getClientRects().length > 0) {
               foundElement = el;
@@ -48,24 +58,26 @@ const waitForElementByText = async (text, maxWaitMs = 5000) => {
   });
 };
 
-// 3. Shield Strategy: Upgraded to hide iron-dropdowns
+/**
+ * Toggles an invisible shield over the viewport and applies CSS to hide YouTube's 
+ * dropdowns and modals. Prevents user interference while the DOM script runs.
+ * * @param {boolean} enable - True to engage the cloak, false to remove it.
+ */
 function toggleCloak(enable) {
   if (enable) {
-    // Inject invisible overlay to block accidental user clicks
     const shield = document.createElement("div");
     shield.id = "guardian-shield";
     shield.style.cssText = "position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:2147483646;cursor:wait;";
     document.body.appendChild(shield);
 
-    // Inject CSS to visually hide YouTube's reporting popups
     const style = document.createElement("style");
     style.id = "guardian-cloak";
     style.textContent = `
       ytd-menu-popup-renderer, 
       tp-yt-paper-dialog, 
       tp-yt-iron-overlay-backdrop,
-      tp-yt-iron-dropdown,          /* Hides the new 3-dots dropdown container */
-      #iron-dropdown                /* Catch-all for older UI dropdowns */
+      tp-yt-iron-dropdown,          
+      #iron-dropdown                
       { 
         opacity: 0 !important; 
         pointer-events: auto !important; 
@@ -79,78 +91,67 @@ function toggleCloak(enable) {
 }
 
 // ==========================================
-// PHASE 2: AUTOMATION SEQUENCE
+// AUTOMATION SEQUENCE
 // ==========================================
 
+/**
+ * Executes the automated sequence to open the YouTube reporting modal and select a category.
+ * Yields control back to the user for final confirmation or cancellation.
+ * * @param {HTMLElement} commentElement - The DOM node containing the targeted comment.
+ * @param {Function} onModalReady - Callback triggered when automation completes and waits for user.
+ * @returns {Promise<string>} Resolves with "SUCCESS" if submitted, or "CANCELLED" if dismissed.
+ */
 async function executeReportSequence(commentElement, onModalReady) {
   let safetyTimeout;
 
   try {
-    console.log("🟢 [Guardian] Step 1: Engaging Shield");
     toggleCloak(true);
-    // Increased safety timeout slightly in case of slow connections
     safetyTimeout = setTimeout(() => toggleCloak(false), 10000);
 
-    console.log("🟢 [Guardian] Step 2: Locating 3-dots menu for the comment");
     const threadContainer = commentElement.closest('ytd-comment-thread-renderer') || commentElement.closest('ytd-comment-view-model');
     if (!threadContainer) throw new Error("Could not find parent comment container");
 
     const actionMenuBtn = threadContainer.querySelector('#action-menu button, button[aria-label="Action menu"]');
     if (!actionMenuBtn) throw new Error("Action menu (3 dots) not found");
     
-    console.log("🟢 [Guardian] Step 3: Clicking 3-dots menu");
     actionMenuBtn.click();
     await humanDelay(400, 700);
 
-    console.log("🟢 [Guardian] Step 4: Waiting for 'Report' option in dropdown");
     const reportMenuOption = await waitForElementByText("Report");
-    console.log("🟢 [Guardian] Step 5: Clicking 'Report' option");
     reportMenuOption.click();
     await humanDelay(800, 1200);
 
-    console.log("🟢 [Guardian] Step 6: Waiting for category");
-    // Note: Later, this variable will be populated by the AI model
+    // TODO: Dynamic category selection based on AI classification models
     const categoryToSelect = "Hateful or abusive"; 
     const categoryRadio = await waitForElementByText(categoryToSelect);
     
-    console.log("🟢 [Guardian] Step 7: Clicking category");
     categoryRadio.click();
     await humanDelay(300, 600);
 
-    console.log("🟢 [Guardian] Step 8: Automation complete. Dropping shield.");
     clearTimeout(safetyTimeout);
     toggleCloak(false);
 
-    // Tell ui.js that the modal is visible and waiting for the user
     if (onModalReady) onModalReady();
 
-    console.log("🟢 [Guardian] Step 9: Waiting for user decision...");
-
-    // Return a Promise that pauses execution until the user Submits or Cancels
     return new Promise((resolve) => {
       const submitBtn = document.querySelector('tp-yt-paper-dialog button[aria-label="Report"], tp-yt-paper-dialog #submit-button button') || document.querySelector('button.yt-spec-button-shape-next--call-to-action');
       const dialog = document.querySelector('tp-yt-paper-dialog') || document.querySelector('ytd-popup-container');
       
       let isResolved = false;
 
-      // Helper function to clean up and resolve
       const finish = (status) => {
           if (isResolved) return;
           isResolved = true;
-          observer.disconnect(); // Stop watching the DOM
+          observer.disconnect(); 
           resolve(status);
       };
 
-      // Condition A: User clicks Submit
       if (submitBtn) {
           submitBtn.addEventListener('click', () => {
-              console.log("✅ [Guardian] User manually submitted the report.");
               finish("SUCCESS");
           }, { once: true });
       }
 
-      // Condition B: User closes the modal without submitting
-      // We observe the dialog to see if YouTube hides it (display: none or aria-hidden: true)
       const observer = new MutationObserver(() => {
           if (dialog) {
               const isHidden = dialog.style.display === 'none' || 
@@ -158,7 +159,6 @@ async function executeReportSequence(commentElement, onModalReady) {
                                !document.body.contains(dialog);
               
               if (isHidden) {
-                  console.log("⚠️ [Guardian] User closed the report modal.");
                   finish("CANCELLED");
               }
           }
@@ -175,23 +175,26 @@ async function executeReportSequence(commentElement, onModalReady) {
     });
     
   } catch (error) {
-    console.error("❌ [Guardian] FAILED AT:", error);
+    console.error("Guardian Automation Failed:", error);
     throw error; 
   } finally {
-    // Failsafe: Ensure shield is always dropped if an error occurs
     clearTimeout(safetyTimeout);
     toggleCloak(false);
   }
 }
+
 // ==========================================
-// ORIGINAL LOGIC (UPDATED WITH HOOK)
+// INITIALIZATION & PROCESSING
 // ==========================================
 
+/**
+ * Scans the YouTube DOM for newly loaded comments, evaluates their toxicity,
+ * and applies the UI blur functionality to flagged elements.
+ */
 async function processYouTube() {
   if (isProcessingYouTube) return;
   isProcessingYouTube = true;
 
-  // Added ytd-comment-view-model to support YouTube's newer UI layouts
   const comments = document.querySelectorAll(
     "ytd-comment-thread-renderer #content-text, ytd-comment-view-model #content-text"
   );
@@ -202,11 +205,9 @@ async function processYouTube() {
     const text = comment.innerText || "";
 
     try {
-      // This seamlessly calls the global isToxic function from api.js file
       const toxic = await isToxic(text, "youtube");
 
       if (toxic) {
-        // Pass the executeReportSequence down to the UI module
         blurElement(comment, executeReportSequence);
       }
     } catch (error) {
@@ -219,6 +220,10 @@ async function processYouTube() {
   isProcessingYouTube = false;
 }
 
+/**
+ * Bootstraps the YouTube module by running an initial pass and 
+ * setting up a MutationObserver to watch for newly rendered comments.
+ */
 function initYouTube() {
   setTimeout(() => {
     processYouTube();
