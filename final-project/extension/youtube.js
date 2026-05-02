@@ -88,7 +88,8 @@ async function executeReportSequence(commentElement) {
   try {
     console.log("🟢 [Guardian] Step 1: Engaging Shield");
     toggleCloak(true);
-    safetyTimeout = setTimeout(() => toggleCloak(false), 8000);
+    // Increased safety timeout slightly in case of slow connections
+    safetyTimeout = setTimeout(() => toggleCloak(false), 10000);
 
     console.log("🟢 [Guardian] Step 2: Locating 3-dots menu for the comment");
     const threadContainer = commentElement.closest('ytd-comment-thread-renderer') || commentElement.closest('ytd-comment-view-model');
@@ -107,37 +108,44 @@ async function executeReportSequence(commentElement) {
     reportMenuOption.click();
     await humanDelay(800, 1200);
 
-    console.log("🟢 [Guardian] Step 6: Waiting for 'Hateful or abusive' category");
-    const categoryRadio = await waitForElementByText("Hateful or abusive");
+    console.log("🟢 [Guardian] Step 6: Waiting for category");
+    // Note: Later, this variable will be populated by the AI model
+    const categoryToSelect = "Hateful or abusive"; 
+    const categoryRadio = await waitForElementByText(categoryToSelect);
+    
     console.log("🟢 [Guardian] Step 7: Clicking category");
     categoryRadio.click();
     await humanDelay(300, 600);
 
-    console.log("🟢 [Guardian] Step 8: Looking for Submit button");
-    const submitBtn = document.querySelector('tp-yt-paper-dialog button[aria-label="Report"], tp-yt-paper-dialog #submit-button button');
+    console.log("🟢 [Guardian] Step 8: Automation complete. Dropping shield.");
+    // Remove the cloak IMMEDIATELY so the user can see and interact with the modal
+    clearTimeout(safetyTimeout);
+    toggleCloak(false);
+
+    console.log("🟢 [Guardian] Step 9: Attaching listener to YouTube's Submit button");
+    // Find the final report button so we can listen for the user's manual click
+    const submitBtn = document.querySelector('tp-yt-paper-dialog button[aria-label="Report"], tp-yt-paper-dialog #submit-button button') || 
+                      await waitForElementByText("Report", 2000).catch(() => null);
+    
     if (submitBtn) {
-       submitBtn.click();
-    } else {
-       const fallbackSubmit = await waitForElementByText("Report", 2000); 
-       fallbackSubmit.click();
+       submitBtn.addEventListener('click', () => {
+           console.log("✅ [Guardian] User manually submitted the report. Ready for Phase 3 API sync.");
+           // When you build api.js, you will call the sync function here
+       }, { once: true }); // Ensure it only fires once
     }
-    await humanDelay(800, 1500);
 
-    console.log("🟢 [Guardian] Step 9: Waiting for Close toast");
-    const closeToastBtn = await waitForElementByText("Close", 3000).catch(() => null); 
-    if (closeToastBtn) closeToastBtn.click();
-
-    console.log("✅ [Guardian] SUCCESS: Report submitted to YouTube.");
+    // Return a specific status so the UI knows to prompt the user
+    return "PENDING_USER_CONFIRMATION";
 
   } catch (error) {
     console.error("❌ [Guardian] FAILED AT:", error);
     throw error; 
   } finally {
+    // Failsafe: Ensure shield is always dropped if an error occurs
     clearTimeout(safetyTimeout);
     toggleCloak(false);
   }
 }
-
 // ==========================================
 // ORIGINAL LOGIC (UPDATED WITH HOOK)
 // ==========================================

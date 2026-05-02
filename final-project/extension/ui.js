@@ -39,26 +39,30 @@ function blurElement(element, onReportClick) {
   reportBtn.innerText = "Report to platform";
 
   reportBtn.addEventListener("click", async () => {
-    // 1. Visual Feedback & Disable: Prevent duplicate clicks
+    // 1. Visual Feedback
     reportBtn.disabled = true;
-    reportBtn.innerText = "Reporting...";
-    reportBtn.classList.add("reporting-state"); // Useful for adding a CSS spinner
+    reportBtn.innerText = "Automating...";
+    reportBtn.classList.add("reporting-state"); 
 
     if (onReportClick) {
       try {
-        // 2. Trigger the platform-specific DOM automation script
-        // We pass the raw element so youtube.js/twitter.js can extract the commentId
-        await onReportClick(element);
+        // 2. Trigger the DOM sequence
+        const status = await onReportClick(element);
 
-        // 3. Success State
-        reportBtn.innerText = "Reported ✔";
-        reportBtn.classList.replace("reporting-state", "reported-success");
-        // We leave it disabled so the user cannot report the same comment twice
+        // 3. Handle the new "Hand-off" state
+        if (status === "PENDING_USER_CONFIRMATION") {
+          reportBtn.innerText = "Confirm on screen";
+          reportBtn.classList.replace("reporting-state", "reported-success");
+          
+          // Optional: You can change the button styling to indicate it's waiting
+          reportBtn.style.backgroundColor = "#555"; 
+        }
+
       } catch (error) {
-        // 4. Error State / Rollback
+        // 4. Error State
         console.error("Guardian Reporting Sequence Failed:", error);
         reportBtn.disabled = false;
-        reportBtn.innerText = "Report Failed. Try Again?";
+        reportBtn.innerText = "Automation Failed. Try Again?";
         reportBtn.classList.remove("reporting-state");
       }
     } else {
@@ -67,7 +71,7 @@ function blurElement(element, onReportClick) {
       reportBtn.innerText = "Report to platform";
     }
   });
-
+  
   // Create a container for the buttons
   const actionContainer = document.createElement("div");
   actionContainer.className = "toxic-actions";
