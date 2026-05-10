@@ -20,7 +20,7 @@
         "https://x.com/*",
         "https://twitter.com/*"
       ],
-      "js": ["api.js", "ui.js", "youtube.js", "twitter.js", "content.js"],
+      "js": ["api.js", "automation.js","ui.js", "youtube.js", "twitter.js", "content.js"],
       "css": ["style.css"]
     }
   ]
