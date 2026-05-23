@@ -46,23 +46,44 @@ console.log("YouTube module loaded");
       "ytd-comment-thread-renderer #content-text, ytd-comment-view-model #content-text"
     );
    
+    // Gather all unchecked comments into parallel arrays
+    const newCommentNodes = [];
+    const textsToAnalyze = [];
+
     for (const comment of comments) {
       if (comment.dataset.checked === "true") continue;
 
       const text = comment.innerText || "";
+      
+      // Mark as checked IMMEDIATELY before the network request 
+      // so the MutationObserver doesn't double-queue it on scroll
+      comment.dataset.checked = "true";
 
+      // Skip empty comments entirely to save backend processing
+      if (text.trim() !== "") {
+        newCommentNodes.push(comment);
+        textsToAnalyze.push(text);
+      }
+    }
+
+    // If we found new text, send the entire batch at once
+    if (textsToAnalyze.length > 0) {
       try {
-        const toxic = await isToxic(text, "youtube");
+        const batchResults = await checkToxicityBatch(textsToAnalyze, "youtube");
 
-        if (toxic) {
-          // Pass our new trigger function to your blurElement handler
-          blurElement(comment, triggerYouTubeReport);
+        // Loop through the results and blur the toxic ones
+        for (let i = 0; i < batchResults.length; i++) {
+          const result = batchResults[i];
+          const commentNode = newCommentNodes[i];
+
+          // The arrays remain in sync, so index [i] of results maps to index [i] of nodes
+          if (result && result.is_toxic) {
+            blurElement(commentNode, triggerYouTubeReport);
+          }
         }
       } catch (error) {
-        console.error("YouTube classification error:", error);
+        console.error("YouTube batch classification error:", error);
       }
-
-      comment.dataset.checked = "true";
     }
 
     isProcessingYouTube = false;
