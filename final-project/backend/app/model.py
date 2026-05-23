@@ -52,6 +52,24 @@ def get_classifier():
 
     return classifier
 
+def predict_toxicity(text: str):
+    model = get_classifier()
+    
+    # Run forward pass for just one string
+    result = model(text)[0]
+
+    label = str(result["label"]).lower()
+    score = float(result["score"])
+
+    is_toxic = ((label == "toxic") or (label == "label_1")) and score >= THRESHOLD
+
+    return {
+        "label": label,
+        "score": score,
+        "threshold": THRESHOLD,
+        "is_toxic": is_toxic
+    }
+
 def predict_toxicity_batch(texts: List[str]):
     # load model
     model = get_classifier()
@@ -77,16 +95,3 @@ def predict_toxicity_batch(texts: List[str]):
         })
 
     return final_results
-
-# Example usage for testing:
-if __name__ == "__main__":
-    sample_messages = [
-        "Hello, how are you?",
-        "This is a test message.",
-        "You are an idiot.", # Should trigger toxicity
-        "I love this project!"
-    ]
-    
-    results = predict_toxicity_batch(sample_messages)
-    for res in results:
-        print(f"[{'TOXIC' if res['is_toxic'] else 'CLEAN'}] Score: {res['score']:.2f} | Text: {res['text']}")
