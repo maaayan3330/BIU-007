@@ -25,9 +25,26 @@ console.log("YouTube module loaded");
       onModalReady: onModalReady,
       isDialogClosed: (dialog) => {
         if (!dialog) return true;
-        return dialog.style.display === 'none' || 
-               dialog.getAttribute('aria-hidden') === 'true' || 
-               !document.body.contains(dialog);
+        if (!document.body.contains(dialog)) return true;
+
+        const tagName = dialog.tagName.toLowerCase();
+
+        // If the automation grabbed the permanent wrapper container
+        if (tagName === 'ytd-popup-container') {
+          const innerDialog = dialog.querySelector('tp-yt-paper-dialog');
+          // It's closed if the inner dialog was deleted OR if it lost its 'opened' state
+          return !innerDialog || !innerDialog.hasAttribute('opened');
+        }
+
+        // If the automation grabbed the specific paper-dialog itself
+        if (tagName === 'tp-yt-paper-dialog') {
+          return !dialog.hasAttribute('opened');
+        }
+
+        // Fallbacks for any other dialog types
+        return dialog.offsetParent === null || 
+               dialog.style.display === 'none' || 
+               dialog.getAttribute('aria-hidden') === 'true';
       },
       isSuccess: () => {
          // YouTube relies entirely on the submit button event listener for SUCCESS
