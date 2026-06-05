@@ -1,6 +1,6 @@
 console.log("Twitter module loaded");
 
-(function() {
+(function () {
   let isProcessingTwitter = false;
 
   async function triggerTwitterReport(commentElement, onModalReady) {
@@ -19,7 +19,7 @@ console.log("Twitter module loaded");
       dropdownSelector: '#layers [role="menu"], #layers [role="dialog"], [data-testid="Dropdown"]',
       reportText: "Report",
       dialogSelector: '#layers [role="dialog"]',
-      categoryText: "Hate", 
+      categoryText: "Hate",
       submitButtonSelectors: 'button[data-testid="ocfFormButton"], button[role="button"]',
       onModalReady: onModalReady,
       isDialogClosed: (dialog) => {
@@ -41,36 +41,54 @@ console.log("Twitter module loaded");
 
     const tweets = document.querySelectorAll('article[data-testid="tweet"]');
 
+    // Gather all unchecked tweets into parallel arrays
+    const newTweetNodes = [];
+    const textsToAnalyze = [];
+
     for (const tweet of tweets) {
       if (tweet.dataset.checked === "true") continue;
 
+      // Mark as checked IMMEDIATELY before processing
+      tweet.dataset.checked = "true";
+
       const textEl = tweet.querySelector('[data-testid="tweetText"]');
 
-      if (!textEl) {
-        tweet.dataset.checked = "true";
-        continue;
-      }
+      if (!textEl) continue;
 
       const text = textEl.innerText || "";
 
-      try {
-        const toxic = await isToxic(text, "twitter");
+      // Skip empty text to save backend processing
+      if (text.trim() !== "") {
+        // Notice we save textEl because that is what your original code passed to blurElement
+        newTweetNodes.push(textEl);
+        textsToAnalyze.push(text);
+      }
+    }
 
-        if (toxic) {
-          // Pass our new trigger function to your blurElement handler
-          blurElement(textEl, triggerTwitterReport);
+    // If we found new text, send the entire batch at once
+    if (textsToAnalyze.length > 0) {
+      try {
+        const batchResults = await checkToxicityBatch(textsToAnalyze, "twitter");
+
+        // Loop through the results and blur the toxic ones
+        for (let i = 0; i < batchResults.length; i++) {
+          const result = batchResults[i];
+          const textEl = newTweetNodes[i];
+
+          // Map the result index back to the DOM element index
+          if (result && result.is_toxic) {
+            blurElement(textEl, triggerTwitterReport);
+          }
         }
       } catch (error) {
-        console.error("Twitter classification error:", error);
+        console.error("Twitter batch classification error:", error);
       }
-
-      tweet.dataset.checked = "true";
     }
 
     isProcessingTwitter = false;
   }
 
-  window.initTwitter = function() {
+  window.initTwitter = function () {
     setTimeout(() => {
       processTwitter();
     }, 3000);

@@ -1,3 +1,5 @@
+from typing import List
+
 from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
@@ -6,8 +8,8 @@ from app.DB.database import engine, Base, get_db
 from app.DB.db_models import Toxic_Comment, System_Stat, ToxicityCategory
 
 from app.logger import log_prediction
-from app.schemas import PredictRequest, PredictResponse
-from app.model import predict_toxicity
+from app.schemas import PredictRequest, PredictResponse, PredictBatchRequest
+from app.model import predict_toxicity, predict_toxicity_batch
 
 # Create the database tables if they don't exist yet
 Base.metadata.create_all(bind=engine)
@@ -23,6 +25,7 @@ app.add_middleware(
 )
 
 # === GET requests ===
+
 @app.get("/")
 def root():
     return {"message": "API is running"}
@@ -88,7 +91,38 @@ def predict(request: PredictRequest, db: Session = Depends(get_db)):
 
     return PredictResponse(**result)
 
-# === POST requests ===
+@app.post("/predict-batch", response_model=List[PredictResponse])
+def predict_batch(request: PredictBatchRequest, db: Session = Depends(get_db)):
+    # Run the optimized ML batch pipeline
+    batch_results = predict_toxicity_batch(request.texts)
+
+    toxic_count = 0
+    
+    # Process results and stage toxic comments for DB insertion
+    for res in batch_results:
+        if res.get("is_toxic", False):
+            toxic_count += 1
+            db_comment = Toxic_Comment(
+                content=res.get("text"),
+                category=ToxicityCategory.GENERAL,
+                score=res.get("score", 0.0)
+            )
+            db.add(db_comment)
+
+    # Retrieve or initialize global system metrics
+    stats = db.query(System_Stat).filter(System_Stat.id == 1).first()
+    if not stats:
+        stats = System_Stat(id=1, total_comments=0, total_toxic_comments=0, community_members=0, total_reports=0)
+        db.add(stats)
+    
+    # Apply batch increments in a single operation
+    stats.total_comments += len(batch_results)
+    stats.total_toxic_comments += toxic_count
+
+    # Commit all records and metric tracking at once
+    db.commit()
+
+    return batch_results
 
 @app.post("/stats/total_reports")
 def add_report(db: Session = Depends(get_db)):
