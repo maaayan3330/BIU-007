@@ -87,3 +87,35 @@ def predict(request: PredictRequest, db: Session = Depends(get_db)):
     db.commit()
 
     return PredictResponse(**result)
+
+# === POST requests ===
+
+@app.post("/stats/total_reports")
+def add_report(db: Session = Depends(get_db)):
+    # Try to fetch the single stats row (id=1)
+    stats = db.query(System_Stat).filter(System_Stat.id == 1).first()
+    
+    # If it doesn't exist yet, create it to prevent errors
+    if not stats:
+        stats = System_Stat(
+            id=1, 
+            total_comments=0, 
+            total_toxic_comments=0, 
+            community_members=0, 
+            total_reports=0
+        )
+        db.add(stats)
+        
+    # Increment the report counter
+    stats.total_reports += 1
+    
+    # Commit the changes to the database
+    db.commit()
+    
+    # Refresh stats to ensure we return the latest DB state (optional but good practice)
+    db.refresh(stats)
+
+    return {
+        "message": "Report successfully recorded", 
+        "total_reports": stats.total_reports
+    }

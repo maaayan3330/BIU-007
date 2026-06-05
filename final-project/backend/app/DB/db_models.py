@@ -1,5 +1,5 @@
 import enum
-from sqlalchemy import Column, Integer, String, Float, Enum, BigInteger, CheckConstraint
+from sqlalchemy import Column, Integer, String, Float, Enum, BigInteger, CheckConstraint, Text
 from app.DB.database import Base 
 
 class ToxicityCategory(str, enum.Enum):
@@ -12,7 +12,7 @@ class Toxic_Comment(Base):
     __tablename__ = "toxic_comments"
 
     id = Column(Integer, primary_key=True, index=True)
-    content = Column(String(128), nullable=False) 
+    content = Column(Text, nullable=False) 
     category = Column(Enum(ToxicityCategory), nullable=False) 
     score = Column(Float, nullable=False)
 

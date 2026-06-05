@@ -43,3 +43,9 @@
 .toxic-toggle-btn:hover {
   opacity: 0.9;
 }
+
+.toxic-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px; /* Space between the two buttons */
+}
