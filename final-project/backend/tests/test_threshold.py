@@ -1,5 +1,5 @@
 import pytest
-from model import is_hebrew_or_mixed, predict_toxicity
+from app.model import is_hebrew_or_mixed, predict_toxicity
 
 def test_language_detection():
     # Pure English

@@ -143,9 +143,20 @@ The extension will automatically detect and blur harmful content.
 
 ---
 
+### 🔁 4. Tests
+1. All unit and mock tests for the server are under /test directory.
+2. to run the tests, use this command, from the backend as a root:
+  ```
+   python -m unittest tests/test_blocklist.py
+   pytest -v tests/ 
+  
+  ```
+
+
 ### 🔄 Notes
 
 * If you update the backend → it reloads automatically
 * If you update the extension → click **Reload** in Chrome Extensions
+* Warning in the tests - "no __module__ attribute" - can safely ignore
 
 ---

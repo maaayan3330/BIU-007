@@ -1,5 +1,5 @@
 import unittest
-from model import predict_toxicity_batch
+from app.model import predict_toxicity_batch
 
 class TestToxicityClassifier(unittest.TestCase):
 
