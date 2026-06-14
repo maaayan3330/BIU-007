@@ -1,21 +1,22 @@
 from typing import List
-
 from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
-
 from app.DB.database import engine, Base, get_db
 from app.DB.db_models import Toxic_Comment, System_Stat, ToxicityCategory
-
 from app.logger import log_prediction
 from app.schemas import PredictRequest, PredictResponse, PredictBatchRequest
 from app.model import predict_toxicity, predict_toxicity_batch
+from app.category_classifier import classify_toxicity_category
 
 # Create the database tables if they don't exist yet
 Base.metadata.create_all(bind=engine)
 
+# Create the FastAPI application instance
 app = FastAPI(title="Toxicity Detection API")
 
+# Allow requests from the frontend / Chrome extension.
+# This is needed because the frontend runs on a different origin than the backend.
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -51,6 +52,31 @@ def get_total_reports(db: Session = Depends(get_db)):
     stats = db.query(System_Stat).filter(System_Stat.id == 1).first()
     return {"total_reports": stats.total_reports if stats else 0}
 
+# maayan
+@app.get("/stats")
+def get_all_stats(db: Session = Depends(get_db)):
+    stats = db.query(System_Stat).filter(System_Stat.id == 1).first()
+
+    if not stats:
+        return {
+            "total_comments": 0,
+            "total_toxic_comments": 0,
+            "community_members": 0,
+            "total_reports": 0,
+            "report_rate": 0
+        }
+
+    report_rate = 0
+    if stats.total_comments > 0:
+        report_rate = round((stats.total_reports / stats.total_comments) * 100, 2)
+
+    return {
+        "total_comments": stats.total_comments,
+        "total_toxic_comments": stats.total_toxic_comments,
+        "community_members": stats.community_members,
+        "total_reports": stats.total_reports,
+        "report_rate": report_rate
+    }
 # === POST requests ===
 
 @app.post("/predict", response_model=PredictResponse)
@@ -67,7 +93,7 @@ def predict(request: PredictRequest, db: Session = Depends(get_db)):
     if is_toxic:
         db_comment = Toxic_Comment(
             content=request.text,  # Taking the text from the request
-            category=ToxicityCategory.GENERAL,
+            category=classify_toxicity_category(request.text),
             score=score
         )
         db.add(db_comment)
@@ -104,7 +130,7 @@ def predict_batch(request: PredictBatchRequest, db: Session = Depends(get_db)):
             toxic_count += 1
             db_comment = Toxic_Comment(
                 content=res.get("text"),
-                category=ToxicityCategory.GENERAL,
+                category=classify_toxicity_category(res.get("text", "")),
                 score=res.get("score", 0.0)
             )
             db.add(db_comment)
@@ -153,3 +179,26 @@ def add_report(db: Session = Depends(get_db)):
         "message": "Report successfully recorded", 
         "total_reports": stats.total_reports
     }
+
+@app.get("/stats/categories")
+def get_category_stats(db: Session = Depends(get_db)):
+    total_toxic = db.query(Toxic_Comment).count()
+
+    result = []
+
+    for category in ToxicityCategory:
+        count = db.query(Toxic_Comment).filter(
+            Toxic_Comment.category == category
+        ).count()
+
+        percentage = 0
+        if total_toxic > 0:
+            percentage = round((count / total_toxic) * 100, 2)
+
+        result.append({
+            "category": category.value,
+            "count": count,
+            "percentage": percentage
+        })
+
+    return result
