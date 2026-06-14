@@ -4,7 +4,6 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from app.DB.database import engine, Base, get_db
 from app.DB.db_models import Toxic_Comment, System_Stat, ToxicityCategory
-from app.logger import log_prediction
 from app.schemas import PredictRequest, PredictResponse, PredictBatchRequest
 from app.model import predict_toxicity, predict_toxicity_batch
 from app.category_classifier import classify_toxicity_category
