@@ -3,6 +3,11 @@
   "name": "The Guardian",
   "version": "1.0",
   "description": "Filter toxic content",
+  "icons": {
+    "16": "assets/guardian-logo.png",
+    "48": "assets/guardian-logo.png",
+    "128": "assets/guardian-logo.png"
+  },
   "permissions": [],
   "host_permissions": [
     "http://localhost:8000/*",
